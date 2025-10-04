@@ -1,11 +1,13 @@
-import { Container, Graphics, Text, TextStyle } from 'pixi.js';
+import { Container, Graphics, Text, TextStyle, Sprite, Texture } from 'pixi.js';
 import { Button, Input } from '@pixi/ui';
+import { config } from '../config';
 
 export class TopBar {
 	private container!: Container;
 	private widthInput!: Input;
 	private heightInput!: Input;
 	private app: any;
+	private fileInput!: HTMLInputElement;
 
 	constructor(app: any) {
 		this.app = app;
@@ -18,6 +20,9 @@ export class TopBar {
 		this.container.y = 0;
 		this.app.stage.addChild(this.container);
 
+		// 创建文件输入元素
+		this.createFileInput();
+
 		// 创建按钮区域背景
 		this.createBackground();
 
@@ -26,6 +31,23 @@ export class TopBar {
 
 		// 添加示例按钮
 		this.addSampleButtons();
+	}
+
+	private createFileInput() {
+		// 创建隐藏的文件输入元素
+		this.fileInput = document.createElement('input');
+		this.fileInput.type = 'file';
+		this.fileInput.accept = 'image/*';
+		this.fileInput.style.display = 'none';
+		document.body.appendChild(this.fileInput);
+
+		// 监听文件选择事件
+		this.fileInput.addEventListener('change', (event) => {
+			const file = (event.target as HTMLInputElement).files?.[0];
+			if (file) {
+				this.loadAndDisplayImage(file);
+			}
+		});
 	}
 
 	private createBackground() {
@@ -64,7 +86,7 @@ export class TopBar {
 
 		this.widthInput = new Input({
 			bg: widthInputBg,
-			value: '100',
+			value: config.unitWidth.toString(),
 			textStyle: new TextStyle({
 				fontFamily: 'Arial',
 				fontSize: 12,
@@ -100,7 +122,7 @@ export class TopBar {
 
 		this.heightInput = new Input({
 			bg: heightInputBg,
-			value: '100',
+			value: config.unitHeight.toString(),
 			textStyle: new TextStyle({
 				fontFamily: 'Arial',
 				fontSize: 12,
@@ -133,29 +155,56 @@ export class TopBar {
 	}
 
 	private addSampleButtons() {
-		// 按钮1
-		const button1 = this.createButton('按钮1', 0x4caf50);
-		button1.x = 200;
+		let currentX = 200; // 起始X位置
+		const buttonSpacing = 20; // 按钮间距
+
+		// 按钮1 - 添加图片
+		const button1 = this.createButton('添加图片', 0x4caf50, () => {
+			this.fileInput.click();
+		});
+		button1.x = currentX;
 		button1.y = 20;
 		this.container.addChild(button1);
+		currentX += button1.width + buttonSpacing;
 
 		// 按钮2
-		const button2 = this.createButton('按钮2', 0x2196f3);
-		button2.x = 330;
+		const button2 = this.createButton('添加图片目录', 0x2196f3, () => {
+			console.log('点击了添加图片目录');
+		});
+		button2.x = currentX;
 		button2.y = 20;
 		this.container.addChild(button2);
+		currentX += button2.width + buttonSpacing;
 
 		// 按钮3
-		const button3 = this.createButton('按钮3', 0xff9800);
-		button3.x = 460;
+		const button3 = this.createButton('添加spine目录', 0xff9800, () => {
+			console.log('点击了添加spine目录');
+		});
+		button3.x = currentX;
 		button3.y = 20;
 		this.container.addChild(button3);
 	}
 
-	private createButton(text: string, color: number) {
+	private createButton(text: string, color: number, onClick?: () => void) {
+		// 创建按钮文字来测量宽度
+		const tempText = new Text({
+			text: text,
+			style: new TextStyle({
+				fontFamily: 'Arial',
+				fontSize: 16,
+				fill: 0xffffff,
+				align: 'center'
+			})
+		});
+
+		// 计算按钮宽度，基于文字宽度加上内边距
+		const textWidth = tempText.width;
+		const buttonWidth = Math.max(100, textWidth + 32); // 最小宽度100，左右各16px内边距
+		const buttonHeight = 60;
+
 		// 创建按钮背景
 		const background = new Graphics();
-		background.roundRect(0, 0, 100, 60, 8); // 添加圆角
+		background.roundRect(0, 0, buttonWidth, buttonHeight, 8); // 添加圆角
 		background.fill(color);
 		background.stroke({ width: 2, color: 0xffffff });
 
@@ -170,8 +219,8 @@ export class TopBar {
 			})
 		});
 		buttonText.anchor.set(0.5);
-		buttonText.x = 50;
-		buttonText.y = 30;
+		buttonText.x = buttonWidth / 2;
+		buttonText.y = buttonHeight / 2;
 
 		// 创建按钮容器
 		const buttonContainer = new Container();
@@ -184,7 +233,11 @@ export class TopBar {
 
 		// 添加事件监听
 		button.onPress.connect(() => {
-			console.log(`点击了${text}`);
+			if (onClick) {
+				onClick();
+			} else {
+				console.log(`点击了${text}`);
+			}
 		});
 
 		button.onHover.connect(() => {
@@ -204,6 +257,50 @@ export class TopBar {
 		});
 
 		return button.view;
+	}
+
+	private loadAndDisplayImage(file: File) {
+		const reader = new FileReader();
+		reader.onload = (e) => {
+			const imageUrl = e.target?.result as string;
+			if (imageUrl) {
+				// 创建图片元素
+				const img = new Image();
+				img.onload = () => {
+					// 从图片元素创建纹理
+					const texture = Texture.from(img);
+
+					// 创建精灵
+					const sprite = new Sprite(texture);
+
+					// 设置位置（在canvas中央，但避开顶部按钮区域）
+					sprite.x = (window.innerWidth - sprite.width) / 2;
+					sprite.y = Math.max(120, (window.innerHeight - sprite.height) / 2);
+
+					// 如果图片太大，按比例缩放
+					const maxWidth = window.innerWidth * 0.8;
+					const maxHeight = (window.innerHeight - 120) * 0.8;
+
+					if (sprite.width > maxWidth || sprite.height > maxHeight) {
+						const scaleX = maxWidth / sprite.width;
+						const scaleY = maxHeight / sprite.height;
+						const scale = Math.min(scaleX, scaleY);
+						sprite.scale.set(scale);
+
+						// 重新计算位置
+						sprite.x = (window.innerWidth - sprite.width) / 2;
+						sprite.y = Math.max(120, (window.innerHeight - sprite.height) / 2);
+					}
+
+					// 添加到舞台
+					this.app.stage.addChild(sprite);
+
+					console.log('图片已加载并显示到canvas上');
+				};
+				img.src = imageUrl;
+			}
+		};
+		reader.readAsDataURL(file);
 	}
 
 	public updateSize() {
