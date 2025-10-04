@@ -9,6 +9,8 @@ export class Game {
 	private topBar!: TopBar;
 	private containerUnits: ContainerUnit[] = [];
 	private resGroups: ResGroup[] = [];
+	private stageY: number = 0; // stage的Y偏移量
+	private maxScrollY: number = 0; // 最大滚动距离
 
 	constructor() {}
 
@@ -34,6 +36,9 @@ export class Game {
 
 		// 检查所有containerUnits中是否都有对应ResGroup的ResInstance,没有的话则添加
 		this.updateResInstances();
+
+		// 更新滚动边界
+		this.updateScrollBounds();
 	}
 
 	private layoutContainerUnits() {
@@ -64,6 +69,46 @@ export class Game {
 		});
 	}
 
+	private updateScrollBounds() {
+		if (this.containerUnits.length === 0) {
+			this.maxScrollY = 0;
+			return;
+		}
+
+		// 找到最底部的ContainerUnit
+		let maxY = 0;
+		this.containerUnits.forEach((unit) => {
+			const unitY = unit.getContainer().y + config.unitHeight;
+			if (unitY > maxY) {
+				maxY = unitY;
+			}
+		});
+
+		// 计算最大滚动距离
+		// 最大滚动距离 = 最底部unit的底部位置 - 屏幕高度
+		this.maxScrollY = Math.max(0, maxY - window.innerHeight);
+	}
+
+	private setupScrollEvents() {
+		// 监听鼠标滚轮事件
+		this.app.canvas.addEventListener('wheel', (event) => {
+			event.preventDefault(); // 阻止默认滚动行为
+
+			const scrollSpeed = 50; // 滚动速度
+			const deltaY = -event.deltaY;
+
+			// 计算新的Y位置
+			let newY = this.stageY + (deltaY * scrollSpeed) / 100;
+
+			// 限制滚动范围
+			newY = Math.max(-this.maxScrollY, Math.min(0, newY));
+
+			// 更新stage位置
+			this.stageY = newY;
+			this.app.stage.y = this.stageY;
+		});
+	}
+
 	public async init(container: HTMLElement) {
 		this.app = new Application();
 		(globalThis as any).__PIXI_APP__ = this.app;
@@ -85,6 +130,10 @@ export class Game {
 			this.app.renderer.resize(window.innerWidth, window.innerHeight);
 			this.topBar.updateSize();
 			this.layoutContainerUnits(); // 重新布局ContainerUnit
+			this.updateScrollBounds(); // 更新滚动边界
 		});
+
+		// 添加鼠标滚轮事件监听
+		this.setupScrollEvents();
 	}
 }
