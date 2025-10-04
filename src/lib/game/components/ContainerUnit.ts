@@ -1,4 +1,4 @@
-import { Container, Graphics } from 'pixi.js';
+import { Container, Graphics, Text, TextStyle } from 'pixi.js';
 import { ResInstance } from './ResInstance';
 import type { ResGroup } from './ResGroup';
 
@@ -7,12 +7,15 @@ export class ContainerUnit {
 	private resInstances: ResInstance[] = [];
 	private background: Graphics;
 	private mask: Graphics;
+	private idx: number = 0;
+	private idxText: Text;
 
-	constructor(options: { width: number; height: number }) {
+	constructor(options: { idx: number; width: number; height: number }) {
 		this.container = new Container();
 		this.container.label = 'ContainerUnit';
 		this.container.width = options.width;
 		this.container.height = options.height;
+		this.idx = options.idx;
 
 		// 创建灰色背景
 		this.background = new Graphics();
@@ -20,6 +23,20 @@ export class ContainerUnit {
 		this.background.fill(0x808080); // 灰色
 		this.background.stroke({ width: 2, color: 0x666666 }); // 深灰色边框
 		this.container.addChild(this.background);
+
+		// 创建idx文本
+		this.idxText = new Text({
+			text: this.idx.toString(),
+			style: new TextStyle({
+				fontFamily: 'Arial',
+				fontSize: 16,
+				fill: 0xffffff,
+				align: 'left'
+			})
+		});
+		this.idxText.x = 5; // 左上角偏移5像素
+		this.idxText.y = 5;
+		this.container.addChild(this.idxText);
 
 		// 创建遮罩
 		this.mask = new Graphics();

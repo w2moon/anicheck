@@ -25,7 +25,11 @@ export class Game {
 		const needUnits = maxLength - this.containerUnits.length;
 		if (needUnits > 0) {
 			for (let i = 0; i < needUnits; i++) {
-				const unit = new ContainerUnit({ width: config.unitWidth, height: config.unitHeight });
+				const unit = new ContainerUnit({
+					idx: this.containerUnits.length + 1,
+					width: config.unitWidth,
+					height: config.unitHeight
+				});
 				this.containerUnits.push(unit);
 				this.app.stage.addChild(unit.getContainer());
 			}
