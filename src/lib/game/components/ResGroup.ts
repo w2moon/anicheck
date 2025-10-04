@@ -27,7 +27,7 @@ export class ResGroup {
 
 	createResInstance(idx: number) {
 		// 生成对应的ResInstance并返回
-		const res = this.res[idx];
+		const res = this.res[idx % this.res.length];
 		const resInstance = new ResInstance(res, this);
 		resInstance.container.x = this.x;
 		resInstance.container.y = this.y;

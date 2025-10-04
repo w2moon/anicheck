@@ -55,10 +55,10 @@ export class Game {
 
 	private updateResInstances() {
 		// 为每个ContainerUnit检查并添加对应的ResInstance
-		this.containerUnits.forEach((unit) => {
+		this.containerUnits.forEach((unit, index) => {
 			this.resGroups.forEach((group) => {
 				if (!unit.hasResGroup(group)) {
-					unit.addResInstance(group.createResInstance(0));
+					unit.addResInstance(group.createResInstance(index));
 				}
 			});
 		});

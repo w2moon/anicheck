@@ -10,6 +10,7 @@ export class TopBar {
 	private heightInput!: Input;
 	private app: any;
 	private fileInput!: HTMLInputElement;
+	private directoryInput!: HTMLInputElement;
 	private game: Game;
 
 	constructor(app: any, game: Game) {
@@ -26,6 +27,9 @@ export class TopBar {
 
 		// 创建文件输入元素
 		this.createFileInput();
+
+		// 创建目录输入元素
+		this.createDirectoryInput();
 
 		// 创建按钮区域背景
 		this.createBackground();
@@ -50,6 +54,25 @@ export class TopBar {
 			const file = (event.target as HTMLInputElement).files?.[0];
 			if (file) {
 				this.loadAndDisplayImage(file);
+			}
+		});
+	}
+
+	private createDirectoryInput() {
+		// 创建隐藏的目录输入元素
+		this.directoryInput = document.createElement('input');
+		this.directoryInput.type = 'file';
+		this.directoryInput.webkitdirectory = true;
+		this.directoryInput.multiple = true;
+		this.directoryInput.accept = 'image/*';
+		this.directoryInput.style.display = 'none';
+		document.body.appendChild(this.directoryInput);
+
+		// 监听目录选择事件
+		this.directoryInput.addEventListener('change', (event) => {
+			const files = (event.target as HTMLInputElement).files;
+			if (files && files.length > 0) {
+				this.loadAndDisplayDirectory(files);
 			}
 		});
 	}
@@ -173,7 +196,7 @@ export class TopBar {
 
 		// 按钮2
 		const button2 = this.createButton('添加图片目录', 0x2196f3, () => {
-			console.log('点击了添加图片目录');
+			this.directoryInput.click();
 		});
 		button2.x = currentX;
 		button2.y = 20;
@@ -292,6 +315,74 @@ export class TopBar {
 			}
 		};
 		reader.readAsDataURL(file);
+	}
+
+	private loadAndDisplayDirectory(files: FileList) {
+		// 将FileList转换为数组并过滤图片文件
+		const imageFiles = Array.from(files).filter((file) => file.type.startsWith('image/'));
+
+		if (imageFiles.length === 0) {
+			console.log('目录中没有找到图片文件');
+			return;
+		}
+
+		// 按文件名中的数字排序
+		const sortedFiles = this.sortFilesByNumber(imageFiles);
+
+		console.log(`找到 ${sortedFiles.length} 个图片文件，开始加载...`);
+
+		// 加载所有图片
+		this.loadMultipleImages(sortedFiles);
+	}
+
+	private sortFilesByNumber(files: File[]): File[] {
+		return files.sort((a, b) => {
+			const numA = this.extractFirstNumber(a.name);
+			const numB = this.extractFirstNumber(b.name);
+			return numA - numB;
+		});
+	}
+
+	private extractFirstNumber(filename: string): number {
+		// 提取文件名中的第一组数字
+		const match = filename.match(/\d+/);
+		return match ? parseInt(match[0], 10) : 0;
+	}
+
+	private loadMultipleImages(files: File[]) {
+		const resArray: Res[] = [];
+		let loadedCount = 0;
+		const totalCount = files.length;
+
+		files.forEach((file, index) => {
+			const reader = new FileReader();
+			reader.onload = (e) => {
+				const imageUrl = e.target?.result as string;
+				if (imageUrl) {
+					const img = new Image();
+					img.onload = () => {
+						const texture = Texture.from(img);
+						const res: Res = {
+							type: ResType.Image,
+							data: { texture }
+						};
+						resArray[index] = res;
+						loadedCount++;
+
+						// 所有图片加载完成后创建ResGroup
+						if (loadedCount === totalCount) {
+							// 过滤掉undefined的元素（防止某些图片加载失败）
+							const validResArray = resArray.filter((res) => res !== undefined);
+							const resGroup = new ResGroup(validResArray);
+							this.game.addResGroup(resGroup);
+							console.log(`目录加载完成，创建了包含 ${validResArray.length} 个图片的ResGroup`);
+						}
+					};
+					img.src = imageUrl;
+				}
+			};
+			reader.readAsDataURL(file);
+		});
 	}
 
 	public updateSize() {
