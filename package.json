@@ -25,6 +25,7 @@
 		"vite": "^7.0.4"
 	},
 	"dependencies": {
+		"@pixi/ui": "^2.2.7",
 		"pixi.js": "^8.13.2"
 	}
 }

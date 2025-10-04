@@ -1,7 +1,9 @@
 import { Application } from 'pixi.js';
+import { TopBar } from './components/TopBar';
 
 export class Game {
 	private app!: Application;
+	private topBar!: TopBar;
 
 	constructor() {}
 
@@ -14,9 +16,14 @@ export class Game {
 		});
 		container.appendChild(this.app.canvas);
 
+		// 创建顶部按钮栏
+		this.topBar = new TopBar(this.app);
+		this.topBar.init();
+
 		// 监听窗口大小变化
 		window.addEventListener('resize', () => {
 			this.app.renderer.resize(window.innerWidth, window.innerHeight);
+			this.topBar.updateSize();
 		});
 	}
 }
