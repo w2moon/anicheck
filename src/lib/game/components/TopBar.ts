@@ -1,6 +1,8 @@
 import { Container, Graphics, Text, TextStyle, Sprite, Texture } from 'pixi.js';
 import { Button, Input } from '@pixi/ui';
 import { config } from '../config';
+import { ResGroup, ResType, type Res } from './ResGroup';
+import type { Game } from '../index';
 
 export class TopBar {
 	private container!: Container;
@@ -8,9 +10,11 @@ export class TopBar {
 	private heightInput!: Input;
 	private app: any;
 	private fileInput!: HTMLInputElement;
+	private game: Game;
 
-	constructor(app: any) {
+	constructor(app: any, game: Game) {
 		this.app = app;
+		this.game = game;
 	}
 
 	public init() {
@@ -270,32 +274,19 @@ export class TopBar {
 					// 从图片元素创建纹理
 					const texture = Texture.from(img);
 
-					// 创建精灵
-					const sprite = new Sprite(texture);
+					// 创建Res对象
+					const res: Res = {
+						type: ResType.Image,
+						data: { texture }
+					};
 
-					// 设置位置（在canvas中央，但避开顶部按钮区域）
-					sprite.x = (window.innerWidth - sprite.width) / 2;
-					sprite.y = Math.max(120, (window.innerHeight - sprite.height) / 2);
+					// 创建ResGroup
+					const resGroup = new ResGroup([res]);
 
-					// 如果图片太大，按比例缩放
-					const maxWidth = window.innerWidth * 0.8;
-					const maxHeight = (window.innerHeight - 120) * 0.8;
+					// 添加到游戏中的resGroups
+					this.game.addResGroup(resGroup);
 
-					if (sprite.width > maxWidth || sprite.height > maxHeight) {
-						const scaleX = maxWidth / sprite.width;
-						const scaleY = maxHeight / sprite.height;
-						const scale = Math.min(scaleX, scaleY);
-						sprite.scale.set(scale);
-
-						// 重新计算位置
-						sprite.x = (window.innerWidth - sprite.width) / 2;
-						sprite.y = Math.max(120, (window.innerHeight - sprite.height) / 2);
-					}
-
-					// 添加到舞台
-					this.app.stage.addChild(sprite);
-
-					console.log('图片已加载并显示到canvas上');
+					console.log('图片已加载并创建ResGroup');
 				};
 				img.src = imageUrl;
 			}

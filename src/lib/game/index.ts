@@ -30,8 +30,38 @@ export class Game {
 		}
 
 		// 按当前的宽高，在屏幕上排列Units，到宽度后自动换行
+		this.layoutContainerUnits();
 
 		// 检查所有containerUnits中是否都有对应ResGroup的ResInstance,没有的话则添加
+		this.updateResInstances();
+	}
+
+	private layoutContainerUnits() {
+		const startY = 120; // 避开顶部按钮区域
+		const padding = 10; // 单元间距
+		const unitsPerRow = Math.floor((window.innerWidth - padding) / (config.unitWidth + padding));
+
+		this.containerUnits.forEach((unit, index) => {
+			const row = Math.floor(index / unitsPerRow);
+			const col = index % unitsPerRow;
+
+			const x = padding + col * (config.unitWidth + padding);
+			const y = startY + row * (config.unitHeight + padding);
+
+			unit.getContainer().x = x;
+			unit.getContainer().y = y;
+		});
+	}
+
+	private updateResInstances() {
+		// 为每个ContainerUnit检查并添加对应的ResInstance
+		this.containerUnits.forEach((unit) => {
+			this.resGroups.forEach((group) => {
+				if (!unit.hasResGroup(group)) {
+					unit.addResInstance(group.createResInstance(0));
+				}
+			});
+		});
 	}
 
 	public async init(container: HTMLElement) {
@@ -47,13 +77,14 @@ export class Game {
 		container.appendChild(this.app.canvas);
 
 		// 创建顶部按钮栏
-		this.topBar = new TopBar(this.app);
+		this.topBar = new TopBar(this.app, this);
 		this.topBar.init();
 
 		// 监听窗口大小变化
 		window.addEventListener('resize', () => {
 			this.app.renderer.resize(window.innerWidth, window.innerHeight);
 			this.topBar.updateSize();
+			this.layoutContainerUnits(); // 重新布局ContainerUnit
 		});
 	}
 }
