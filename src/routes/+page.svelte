@@ -1,2 +1,24 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
+<script lang="ts">
+	import { onMount } from 'svelte';
+	import { Game } from '$lib/game';
+
+	let container: HTMLDivElement;
+	let game: Game;
+
+	onMount(() => {
+		game = new Game();
+		game.init(container);
+	});
+</script>
+
+<div class="app" bind:this={container}></div>
+
+<style>
+	.app {
+		width: 100vw;
+		height: 100vh;
+		margin: 0;
+		padding: 0;
+		overflow: hidden;
+	}
+</style>
