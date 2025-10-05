@@ -1,4 +1,4 @@
-import { Application } from 'pixi.js';
+import { Application, Container } from 'pixi.js';
 import { TopBar } from './components/TopBar';
 import { ContainerUnit } from './components/ContainerUnit';
 import { ResGroup } from './components/ResGroup';
@@ -8,6 +8,7 @@ export class Game {
 	private app!: Application;
 	private topBar!: TopBar;
 	private containerUnits: ContainerUnit[] = [];
+	private unitsContainer!: Container;
 	private resGroups: ResGroup[] = [];
 	private stageY: number = 0; // stage的Y偏移量
 	private maxScrollY: number = 0; // 最大滚动距离
@@ -71,7 +72,7 @@ export class Game {
 					height: config.unitHeight
 				});
 				this.containerUnits.push(unit);
-				this.app.stage.addChild(unit.getContainer());
+				this.unitsContainer.addChild(unit.getContainer());
 			}
 		} else if (needUnits < 0) {
 			// 删除多余的ContainerUnit
@@ -79,7 +80,7 @@ export class Game {
 			for (let i = 0; i < unitsToRemove; i++) {
 				const unit = this.containerUnits.pop();
 				if (unit) {
-					this.app.stage.removeChild(unit.getContainer());
+					this.unitsContainer.removeChild(unit.getContainer());
 				}
 			}
 		}
@@ -197,6 +198,10 @@ export class Game {
 			autoDensity: true // 自动调整密度
 		});
 		container.appendChild(this.app.canvas);
+
+		// 创建units容器
+		this.unitsContainer = new Container();
+		this.app.stage.addChild(this.unitsContainer);
 
 		// 创建顶部按钮栏
 		this.topBar = new TopBar(this.app, this);

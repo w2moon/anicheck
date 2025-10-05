@@ -149,7 +149,7 @@ export class DropDown extends Container {
 		this.options.forEach((option, index) => {
 			const optionButton = new Graphics();
 			optionButton.rect(0, index * optionHeight, width, optionHeight);
-			optionButton.fill(0x00000000); // 透明背景，用于点击检测
+			optionButton.fill(backgroundColor); // 使用与主背景相同的颜色
 
 			const optionText = new Text({
 				text: option.text,
@@ -182,7 +182,7 @@ export class DropDown extends Container {
 			optionContainer.on('pointerout', () => {
 				optionButton.clear();
 				optionButton.rect(0, index * optionHeight, width, optionHeight);
-				optionButton.fill(0x00000000);
+				optionButton.fill(backgroundColor);
 			});
 
 			optionContainer.on('pointerdown', () => {
