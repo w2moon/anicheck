@@ -7,6 +7,7 @@ import { DirectoryLoader } from '../utils/directoryLoader';
 
 export class TopBar {
 	private container!: Container;
+	private columnInput!: Input;
 	private widthInput!: Input;
 	private heightInput!: Input;
 	private app: any;
@@ -96,6 +97,42 @@ export class TopBar {
 		inputContainer.y = 10;
 		this.container.addChild(inputContainer);
 
+		// 列数输入框
+		const columnLabel = new Text({
+			text: '列数',
+			style: new TextStyle({
+				fontFamily: 'Arial',
+				fontSize: 14,
+				fill: 0xffffff,
+				align: 'left'
+			})
+		});
+		columnLabel.x = 0;
+		columnLabel.y = 0;
+		inputContainer.addChild(columnLabel);
+
+		// 创建列数输入框背景
+		const columnInputBg = new Graphics();
+		columnInputBg.roundRect(0, 0, 60, 30, 4);
+		columnInputBg.fill(0xffffff);
+		columnInputBg.stroke({ width: 1, color: 0xcccccc });
+
+		this.columnInput = new Input({
+			bg: columnInputBg,
+			value: config.rowAmount.toString(),
+			textStyle: new TextStyle({
+				fontFamily: 'Arial',
+				fontSize: 12,
+				fill: 0x000000,
+				align: 'left'
+			}),
+			padding: { top: 4, right: 4, bottom: 4, left: 4 },
+			align: 'left'
+		});
+		this.columnInput.x = 0;
+		this.columnInput.y = 20;
+		inputContainer.addChild(this.columnInput);
+
 		// 宽度输入框
 		const widthLabel = new Text({
 			text: '宽',
@@ -106,7 +143,7 @@ export class TopBar {
 				align: 'left'
 			})
 		});
-		widthLabel.x = 0;
+		widthLabel.x = 80;
 		widthLabel.y = 0;
 		inputContainer.addChild(widthLabel);
 
@@ -128,7 +165,7 @@ export class TopBar {
 			padding: { top: 4, right: 4, bottom: 4, left: 4 },
 			align: 'left'
 		});
-		this.widthInput.x = 0;
+		this.widthInput.x = 80;
 		this.widthInput.y = 20;
 		inputContainer.addChild(this.widthInput);
 
@@ -142,7 +179,7 @@ export class TopBar {
 				align: 'left'
 			})
 		});
-		heightLabel.x = 80;
+		heightLabel.x = 160;
 		heightLabel.y = 0;
 		inputContainer.addChild(heightLabel);
 
@@ -164,11 +201,15 @@ export class TopBar {
 			padding: { top: 4, right: 4, bottom: 4, left: 4 },
 			align: 'left'
 		});
-		this.heightInput.x = 80;
+		this.heightInput.x = 160;
 		this.heightInput.y = 20;
 		inputContainer.addChild(this.heightInput);
 
 		// 添加输入事件监听
+		this.columnInput.onChange.connect((text: string) => {
+			console.log('列数输入框值改变:', text);
+		});
+
 		this.widthInput.onChange.connect((text: string) => {
 			console.log('宽度输入框值改变:', text);
 		});
@@ -177,17 +218,35 @@ export class TopBar {
 			console.log('高度输入框值改变:', text);
 		});
 
+		this.columnInput.onEnter.connect((text: string) => {
+			console.log('列数输入框确认:', text);
+			const columns = parseInt(text);
+			if (!isNaN(columns) && columns > 0) {
+				this.game.updateColumnsPerRow(columns);
+			}
+		});
+
 		this.widthInput.onEnter.connect((text: string) => {
 			console.log('宽度输入框确认:', text);
+			const width = parseInt(text);
+			if (!isNaN(width) && width > 0) {
+				config.unitWidth = width;
+				this.game.updateContainerUnits();
+			}
 		});
 
 		this.heightInput.onEnter.connect((text: string) => {
 			console.log('高度输入框确认:', text);
+			const height = parseInt(text);
+			if (!isNaN(height) && height > 0) {
+				config.unitHeight = height;
+				this.game.updateContainerUnits();
+			}
 		});
 	}
 
 	private addSampleButtons() {
-		let currentX = 200; // 起始X位置
+		let currentX = 280; // 起始X位置，为新增的列数输入框留出空间
 		const buttonSpacing = 20; // 按钮间距
 
 		// 按钮1 - 添加图片

@@ -58,4 +58,21 @@ export class ContainerUnit {
 	getContainer() {
 		return this.container;
 	}
+
+	// 更新容器大小
+	updateSize(width: number, height: number) {
+		this.container.width = width;
+		this.container.height = height;
+
+		// 更新背景大小
+		this.background.clear();
+		this.background.rect(0, 0, width, height);
+		this.background.fill(0x808080);
+		this.background.stroke({ width: 2, color: 0x666666 });
+
+		// 更新遮罩大小
+		this.mask.clear();
+		this.mask.rect(0, 0, width, height);
+		this.mask.fill(0xffffff);
+	}
 }

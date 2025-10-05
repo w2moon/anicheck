@@ -11,8 +11,16 @@ export class Game {
 	private resGroups: ResGroup[] = [];
 	private stageY: number = 0; // stage的Y偏移量
 	private maxScrollY: number = 0; // 最大滚动距离
+	private columnsPerRow: number = config.rowAmount; // 每行列数
 
 	constructor() {}
+
+	// 更新列数
+	updateColumnsPerRow(columns: number) {
+		this.columnsPerRow = columns;
+		this.layoutContainerUnits();
+		this.updateScrollBounds();
+	}
 
 	addResGroup(group: ResGroup) {
 		this.resGroups.push(group);
@@ -48,17 +56,25 @@ export class Game {
 	private layoutContainerUnits() {
 		const startY = 120; // 避开顶部按钮区域
 		const padding = 10; // 单元间距
-		const unitsPerRow = Math.floor((window.innerWidth - padding) / (config.unitWidth + padding));
+		const unitsPerRow = this.columnsPerRow; // 使用指定的列数
+
+		// 计算每个单元的实际大小（考虑缩放）
+		const availableWidth = window.innerWidth - padding * 2;
+		const totalUnitWidth = unitsPerRow * config.unitWidth + (unitsPerRow - 1) * padding;
+		const scaleX = totalUnitWidth > availableWidth ? availableWidth / totalUnitWidth : 1;
+		const actualUnitWidth = config.unitWidth * scaleX;
+		const actualUnitHeight = config.unitHeight * scaleX;
 
 		this.containerUnits.forEach((unit, index) => {
 			const row = Math.floor(index / unitsPerRow);
 			const col = index % unitsPerRow;
 
-			const x = padding + col * (config.unitWidth + padding);
-			const y = startY + row * (config.unitHeight + padding);
+			const x = padding + col * (actualUnitWidth + padding);
+			const y = startY + row * (actualUnitHeight + padding);
 
 			unit.getContainer().x = x;
 			unit.getContainer().y = y;
+			unit.getContainer().scale.set(scaleX);
 		});
 	}
 
@@ -79,10 +95,18 @@ export class Game {
 			return;
 		}
 
+		// 计算当前缩放比例
+		const padding = 10;
+		const availableWidth = window.innerWidth - padding * 2;
+		const totalUnitWidth =
+			this.columnsPerRow * config.unitWidth + (this.columnsPerRow - 1) * padding;
+		const scaleX = totalUnitWidth > availableWidth ? availableWidth / totalUnitWidth : 1;
+		const actualUnitHeight = config.unitHeight * scaleX;
+
 		// 找到最底部的ContainerUnit
 		let maxY = 0;
 		this.containerUnits.forEach((unit) => {
-			const unitY = unit.getContainer().y + config.unitHeight;
+			const unitY = unit.getContainer().y + actualUnitHeight;
 			if (unitY > maxY) {
 				maxY = unitY;
 			}
