@@ -1,4 +1,4 @@
-import type { Res, ResGroup } from './ResGroup';
+import type { Res, ResGroup, ResSpine } from './ResGroup';
 import { ResType } from './ResGroup';
 import { Container, Sprite, Assets } from 'pixi.js';
 import { Spine } from '@esotericsoftware/spine-pixi-v8';
@@ -51,7 +51,7 @@ export class ResInstance {
 	}
 
 	private async createSpineResource() {
-		const spineData = this.res.data as any; // ResSpine
+		const spineData = this.res.data as ResSpine;
 		if (spineData.skeletonAlias && spineData.atlasAlias) {
 			try {
 				// 直接使用已加载的Assets别名创建Spine实例
@@ -67,6 +67,12 @@ export class ResInstance {
 					// 设置Spine居中
 					this.spine.x = 0;
 					this.spine.y = 0;
+
+					// 自动播放第一个动画（如果存在）
+					const animations = this.getSpineAnimations();
+					if (animations.length > 0) {
+						this.spine.state.setAnimation(0, animations[0], true); // true 表示循环播放
+					}
 				} else {
 					console.error('Spine.from 返回了 undefined');
 				}
@@ -78,6 +84,37 @@ export class ResInstance {
 		} else {
 			console.error('缺少必要的Spine数据:', spineData);
 		}
+	}
+
+	/**
+	 * 获取Spine的动画列表
+	 * @returns 动画名称数组
+	 */
+	public getSpineAnimations(): string[] {
+		if (this.res.type === ResType.Spine) {
+			const spineData = this.res.data as ResSpine;
+			return spineData.animations || [];
+		}
+		return [];
+	}
+
+	/**
+	 * 设置Spine动画
+	 * @param animationName 动画名称
+	 * @param loop 是否循环播放
+	 */
+	public setSpineAnimation(animationName: string, loop: boolean = true): void {
+		if (this.res.type === ResType.Spine && this.spine) {
+			this.spine.state.setAnimation(0, animationName, loop);
+		}
+	}
+
+	/**
+	 * 检查是否为Spine类型
+	 * @returns 是否为Spine类型
+	 */
+	public isSpineType(): boolean {
+		return this.res.type === ResType.Spine;
 	}
 
 	private setupDragEvents() {

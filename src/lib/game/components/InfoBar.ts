@@ -1,12 +1,16 @@
 import { Container, Graphics, Text, TextStyle } from 'pixi.js';
 import { Button, Input } from '@pixi/ui';
 import type { ResGroup } from './ResGroup';
+import { ResType } from './ResGroup';
 import type { Game } from '../index';
+import { DropDown, type DropDownOption } from './DropDown';
 
 export class InfoBar {
 	private container!: Container;
 	private scaleInput!: Input;
 	private deleteButton!: Button;
+	private animationSelect?: DropDown;
+	private animationLabel?: Text;
 	private selectedResGroup: ResGroup | null = null;
 	private game: Game;
 
@@ -166,19 +170,92 @@ export class InfoBar {
 		// 获取按钮的view并设置位置
 		const deleteButtonView = this.deleteButton.view;
 		deleteButtonView.x = 150;
-		deleteButtonView.y = 20;
+		deleteButtonView.y = 25;
 		contentContainer.addChild(deleteButtonView);
+
+		// 创建动画选择下拉框（初始隐藏）
+		this.createAnimationSelector(contentContainer);
+	}
+
+	private createAnimationSelector(contentContainer: Container) {
+		// 动画标签
+		this.animationLabel = new Text({
+			text: '动画:',
+			style: new TextStyle({
+				fontFamily: 'Arial',
+				fontSize: 14,
+				fill: 0xffffff,
+				align: 'left'
+			})
+		});
+		this.animationLabel.x = 250;
+		this.animationLabel.y = 25;
+		this.animationLabel.visible = false;
+		contentContainer.addChild(this.animationLabel);
+
+		// 创建DropDown组件
+		this.animationSelect = new DropDown({
+			width: 120,
+			height: 25,
+			backgroundColor: 0xffffff,
+			hoverColor: 0xf0f0f0,
+			textColor: 0x000000,
+			textStyle: new TextStyle({
+				fontFamily: 'Arial',
+				fontSize: 12,
+				fill: 0x000000,
+				align: 'left'
+			}),
+			options: [],
+			onSelect: (option: DropDownOption) => {
+				if (this.selectedResGroup) {
+					this.selectedResGroup.setSpineAnimation(option.text, true);
+				}
+			}
+		});
+
+		// 设置DropDown位置
+		this.animationSelect.x = 300;
+		this.animationSelect.y = 25;
+		this.animationSelect.visible = false;
+		contentContainer.addChild(this.animationSelect);
 	}
 
 	public show(resGroup: ResGroup) {
 		this.selectedResGroup = resGroup;
 		this.container.visible = true;
 		this.scaleInput.value = resGroup.getScale().toString();
+
+		// 检查是否为Spine类型，显示或隐藏动画选择器
+		if (resGroup.hasSpineType()) {
+			const animations = resGroup.getSpineAnimations();
+			if (this.animationLabel && this.animationSelect) {
+				this.animationLabel.visible = true;
+				this.animationSelect.visible = true;
+
+				// 更新下拉框选项
+				const options: DropDownOption[] = animations.map((name, index) => ({
+					id: index,
+					text: name
+				}));
+				this.animationSelect.setOptions(options);
+			}
+		} else {
+			if (this.animationLabel && this.animationSelect) {
+				this.animationLabel.visible = false;
+				this.animationSelect.visible = false;
+			}
+		}
 	}
 
 	public hide() {
 		this.selectedResGroup = null;
 		this.container.visible = false;
+
+		// 隐藏动画选择器
+		if (this.animationSelect) {
+			this.animationSelect.visible = false;
+		}
 	}
 
 	public updateSize() {
@@ -193,5 +270,12 @@ export class InfoBar {
 		separator.clear();
 		separator.rect(0, 0, window.innerWidth, 1);
 		separator.fill(0x666666);
+	}
+
+	public destroy() {
+		// 清理PIXI组件
+		if (this.animationSelect) {
+			this.animationSelect.destroy();
+		}
 	}
 }

@@ -1,5 +1,5 @@
 import { Texture, Assets } from 'pixi.js';
-import { SpineTexture, TextureAtlas } from '@esotericsoftware/spine-pixi-v8';
+import { SpineTexture, TextureAtlas, Spine } from '@esotericsoftware/spine-pixi-v8';
 import { ResGroup, ResType, type Res } from '../components/ResGroup';
 import type { Game } from '../index';
 
@@ -124,7 +124,7 @@ export class SpineLoader {
 		skel: File;
 		atlas: File;
 		png: File[];
-	}): Promise<{ skeletonAlias: string; atlasAlias: string } | null> {
+	}): Promise<{ skeletonAlias: string; atlasAlias: string; animations: string[] } | null> {
 		try {
 			// 创建唯一的别名
 			const skeletonAlias = `skeleton-${group.name}-${Date.now()}`;
@@ -151,10 +151,30 @@ export class SpineLoader {
 				page.setTexture(SpineTexture.from(textures[page.name].source));
 			});
 
-			// 返回Assets别名和textures
+			// 创建临时的Spine实例来获取动画列表
+			let animations: string[] = [];
+			try {
+				const tempSpine = Spine.from({
+					skeleton: skeletonAlias,
+					atlas: atlasAlias
+				});
+
+				// 从skeletonData中获取动画列表
+				if (tempSpine.skeleton.data && tempSpine.skeleton.data.animations) {
+					animations = tempSpine.skeleton.data.animations.map((animation) => animation.name);
+				}
+
+				// 销毁临时实例
+				tempSpine.destroy();
+			} catch (error) {
+				console.warn(`获取Spine ${group.name} 的动画列表失败:`, error);
+			}
+
+			// 返回Assets别名、textures和动画列表
 			return {
 				skeletonAlias,
-				atlasAlias
+				atlasAlias,
+				animations
 			};
 		} catch (error) {
 			console.error(`加载Spine组 ${group.name} 失败:`, error);
