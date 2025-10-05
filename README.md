@@ -15,7 +15,7 @@ A modern web application built with SvelteKit, featuring interactive animations 
 ### Prerequisites
 
 - Node.js (v18 or higher)
-- npm, pnpm, or yarn
+- Bun (推荐) 或 npm/yarn
 
 ### Installation
 
@@ -23,11 +23,9 @@ A modern web application built with SvelteKit, featuring interactive animations 
 2. Install dependencies:
 
 ```sh
+bun install
+# or
 npm install
-# or
-pnpm install
-# or
-yarn install
 ```
 
 ### Development
@@ -35,32 +33,32 @@ yarn install
 Start the development server:
 
 ```sh
-npm run dev
+bun run dev
 
 # or start the server and open the app in a new browser tab
-npm run dev -- --open
+bun run dev -- --open
 ```
 
 The app will be available at `http://localhost:5173`
 
 ## Available Scripts
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build locally
-- `npm run check` - Run type checking
-- `npm run format` - Format code with Prettier
-- `npm run lint` - Check code formatting
+- `bun run dev` - Start development server
+- `bun run build` - Build for production
+- `bun run preview` - Preview production build locally
+- `bun run check` - Run type checking
+- `bun run format` - Format code with Prettier
+- `bun run lint` - Check code formatting
 
 ## Building
 
 To create a production version of your app:
 
 ```sh
-npm run build
+bun run build
 ```
 
-You can preview the production build with `npm run preview`.
+You can preview the production build with `bun run preview`.
 
 ## Project Structure
 
@@ -116,8 +114,8 @@ src/
 #### 本地预览构建结果：
 
 ```sh
-npm run build
-npm run preview
+bun run build
+bun run preview
 ```
 
 ### 其他部署选项
