@@ -102,8 +102,8 @@ export class ResInstance {
 		// 鼠标移动事件
 		this.container.on('pointermove', (event) => {
 			if (this.isDragging) {
-				const deltaX = event.global.x - this.dragStartX;
-				const deltaY = event.global.y - this.dragStartY;
+				const deltaX = (event.global.x - this.dragStartX) * window.devicePixelRatio;
+				const deltaY = (event.global.y - this.dragStartY) * window.devicePixelRatio;
 
 				const newX = this.initialX + deltaX;
 				const newY = this.initialY + deltaY;
@@ -130,5 +130,15 @@ export class ResInstance {
 
 	public getResGroup() {
 		return this.resGroup;
+	}
+
+	public destroy() {
+		// 停止拖拽
+		this.isDragging = false;
+
+		// 销毁容器
+		if (this.container) {
+			this.container.destroy();
+		}
 	}
 }

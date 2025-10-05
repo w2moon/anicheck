@@ -60,6 +60,8 @@ export class ContainerUnit {
 		if (index > -1) {
 			this.resInstances.splice(index, 1);
 			this.container.removeChild(resInstance.container);
+			// 销毁ResInstance以清理事件监听器
+			resInstance.destroy();
 		}
 	}
 

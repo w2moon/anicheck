@@ -67,6 +67,8 @@ export class TopBar {
 			if (file) {
 				this.imageLoader.loadAndDisplayImage(file);
 			}
+			// 清空input的value，确保下次选择同一文件时也能触发change事件
+			(event.target as HTMLInputElement).value = '';
 		});
 	}
 
@@ -86,6 +88,8 @@ export class TopBar {
 			if (files && files.length > 0) {
 				this.directoryLoader.loadAndDisplayDirectory(files);
 			}
+			// 清空input的value，确保下次选择同一目录时也能触发change事件
+			(event.target as HTMLInputElement).value = '';
 		});
 	}
 
