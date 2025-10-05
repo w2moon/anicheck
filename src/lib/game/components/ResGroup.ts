@@ -1,5 +1,7 @@
 import { Container, Sprite, Texture } from 'pixi.js';
 import { ResInstance } from './ResInstance';
+import type { Spine } from '@esotericsoftware/spine-pixi';
+import { config } from '../config';
 
 export enum ResType {
 	Image,
@@ -9,7 +11,10 @@ export enum ResType {
 export interface ResImage {
 	texture: Texture;
 }
-export interface ResSpine {}
+export interface ResSpine {
+	skeletonAlias: string;
+	atlasAlias: string;
+}
 export interface Res {
 	type: ResType;
 
@@ -17,7 +22,10 @@ export interface Res {
 }
 export class ResGroup {
 	private objs: ResInstance[] = [];
-	constructor(private res: Res[]) {}
+	constructor(private res: Res[]) {
+		this.x = config.unitWidth / 2;
+		this.y = config.unitHeight / 2;
+	}
 
 	private x: number = 0;
 	private y: number = 0;

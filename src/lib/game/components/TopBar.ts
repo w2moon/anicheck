@@ -1,8 +1,9 @@
-import { Container, Graphics, Text, TextStyle, Sprite, Texture } from 'pixi.js';
+import { Container, Graphics, Text, TextStyle, Sprite, Texture, Assets } from 'pixi.js';
 import { Button, Input } from '@pixi/ui';
 import { config } from '../config';
 import { ResGroup, ResType, type Res } from './ResGroup';
 import type { Game } from '../index';
+import { Spine, SpineTexture, TextureAtlas } from '@esotericsoftware/spine-pixi-v8';
 
 export class TopBar {
 	private container!: Container;
@@ -205,7 +206,7 @@ export class TopBar {
 
 		// 按钮3
 		const button3 = this.createButton('添加spine目录', 0xff9800, () => {
-			console.log('点击了添加spine目录');
+			this.directoryInput.click();
 		});
 		button3.x = currentX;
 		button3.y = 20;
@@ -318,21 +319,34 @@ export class TopBar {
 	}
 
 	private loadAndDisplayDirectory(files: FileList) {
-		// 将FileList转换为数组并过滤图片文件
-		const imageFiles = Array.from(files).filter((file) => file.type.startsWith('image/'));
+		// 将FileList转换为数组
+		const allFiles = Array.from(files);
 
-		if (imageFiles.length === 0) {
-			console.log('目录中没有找到图片文件');
-			return;
+		// 检查是否包含Spine文件
+		const hasSpineFiles = allFiles.some(
+			(file) => file.name.endsWith('.skel') || file.name.endsWith('.atlas')
+		);
+
+		if (hasSpineFiles) {
+			// 处理Spine文件
+			this.loadSpineDirectory(allFiles);
+		} else {
+			// 处理图片文件
+			const imageFiles = allFiles.filter((file) => file.type.startsWith('image/'));
+
+			if (imageFiles.length === 0) {
+				console.log('目录中没有找到图片文件');
+				return;
+			}
+
+			// 按文件名中的数字排序
+			const sortedFiles = this.sortFilesByNumber(imageFiles);
+
+			console.log(`找到 ${sortedFiles.length} 个图片文件，开始加载...`);
+
+			// 加载所有图片
+			this.loadMultipleImages(sortedFiles);
 		}
-
-		// 按文件名中的数字排序
-		const sortedFiles = this.sortFilesByNumber(imageFiles);
-
-		console.log(`找到 ${sortedFiles.length} 个图片文件，开始加载...`);
-
-		// 加载所有图片
-		this.loadMultipleImages(sortedFiles);
 	}
 
 	private sortFilesByNumber(files: File[]): File[] {
@@ -381,6 +395,184 @@ export class TopBar {
 					img.src = imageUrl;
 				}
 			};
+			reader.readAsDataURL(file);
+		});
+	}
+
+	private loadSpineDirectory(files: File[]) {
+		// 按文件名分组Spine文件
+		const spineGroups = this.groupSpineFiles(files);
+
+		if (spineGroups.length === 0) {
+			console.log('没有找到完整的Spine文件组');
+			return;
+		}
+
+		console.log(`找到 ${spineGroups.length} 个Spine文件组，开始加载...`);
+
+		// 按文件名中的数字排序
+		const sortedGroups = spineGroups.sort((a, b) => {
+			const numA = this.extractFirstNumber(a.name);
+			const numB = this.extractFirstNumber(b.name);
+			return numA - numB;
+		});
+
+		// 加载所有Spine文件组
+		this.loadMultipleSpineGroups(sortedGroups);
+	}
+
+	private groupSpineFiles(files: File[]): { name: string; skel: File; atlas: File; png: File[] }[] {
+		const groups: { [key: string]: { skel?: File; atlas?: File; png: File[] } } = {};
+
+		// 按文件名分组
+		files.forEach((file) => {
+			const baseName = file.name.replace(/\.(skel|atlas|png)$/, '');
+
+			if (!groups[baseName]) {
+				groups[baseName] = { png: [] };
+			}
+
+			if (file.name.endsWith('.skel')) {
+				groups[baseName].skel = file;
+			} else if (file.name.endsWith('.atlas')) {
+				groups[baseName].atlas = file;
+			} else if (file.name.endsWith('.png')) {
+				groups[baseName].png.push(file);
+			}
+		});
+
+		// 过滤出完整的组（必须有skel和atlas文件）
+		const completeGroups: { name: string; skel: File; atlas: File; png: File[] }[] = [];
+
+		Object.entries(groups).forEach(([name, group]) => {
+			if (group.skel && group.atlas) {
+				completeGroups.push({
+					name,
+					skel: group.skel,
+					atlas: group.atlas,
+					png: group.png
+				});
+			}
+		});
+
+		return completeGroups;
+	}
+
+	private async loadMultipleSpineGroups(
+		groups: { name: string; skel: File; atlas: File; png: File[] }[]
+	) {
+		const resArray: Res[] = [];
+		let loadedCount = 0;
+		const totalCount = groups.length;
+
+		for (let i = 0; i < groups.length; i++) {
+			const group = groups[i];
+
+			try {
+				const spineData = await this.loadSpineGroup(group);
+				if (spineData) {
+					const res: Res = {
+						type: ResType.Spine,
+						data: spineData
+					};
+					resArray[i] = res;
+				}
+			} catch (error) {
+				console.error(`加载Spine组 ${group.name} 失败:`, error);
+			}
+
+			loadedCount++;
+
+			// 所有Spine组加载完成后创建ResGroup
+			if (loadedCount === totalCount) {
+				// 过滤掉undefined的元素
+				const validResArray = resArray.filter((res) => res !== undefined);
+				const resGroup = new ResGroup(validResArray);
+				this.game.addResGroup(resGroup);
+				console.log(`Spine目录加载完成，创建了包含 ${validResArray.length} 个Spine的ResGroup`);
+			}
+		}
+	}
+
+	private async loadSpineGroup(group: {
+		name: string;
+		skel: File;
+		atlas: File;
+		png: File[];
+	}): Promise<{ skeletonAlias: string; atlasAlias: string } | null> {
+		try {
+			// 创建唯一的别名
+			const skeletonAlias = `skeleton-${group.name}-${Date.now()}`;
+			const atlasAlias = `atlas-${group.name}-${Date.now()}`;
+
+			// 读取skel文件为ArrayBuffer
+			const skelArrayBuffer = await this.readFileAsArrayBuffer(group.skel);
+			Assets.cache.set(skeletonAlias, new Uint8Array(skelArrayBuffer));
+
+			// 读取atlas文件为文本
+			const atlasText = await this.readFileAsText(group.atlas);
+
+			// 解析PNG文件为Texture
+			const textures: { [name: string]: Texture } = {};
+			for (const pngFile of group.png) {
+				const texture = await this.loadTextureFromFile(pngFile);
+				textures[pngFile.name] = texture;
+			}
+
+			const textureAtlas = new TextureAtlas(atlasText);
+			Assets.cache.set(atlasAlias, textureAtlas);
+
+			textureAtlas.pages.forEach((page) => {
+				page.setTexture(SpineTexture.from(textures[page.name].source));
+			});
+
+			// 返回Assets别名和textures
+			return {
+				skeletonAlias,
+				atlasAlias
+			};
+		} catch (error) {
+			console.error(`加载Spine组 ${group.name} 失败:`, error);
+			return null;
+		}
+	}
+
+	private readFileAsArrayBuffer(file: File): Promise<ArrayBuffer> {
+		return new Promise((resolve, reject) => {
+			const reader = new FileReader();
+			reader.onload = () => resolve(reader.result as ArrayBuffer);
+			reader.onerror = () => reject(reader.error);
+			reader.readAsArrayBuffer(file);
+		});
+	}
+
+	private readFileAsText(file: File): Promise<string> {
+		return new Promise((resolve, reject) => {
+			const reader = new FileReader();
+			reader.onload = () => resolve(reader.result as string);
+			reader.onerror = () => reject(reader.error);
+			reader.readAsText(file);
+		});
+	}
+
+	private loadTextureFromFile(file: File): Promise<Texture> {
+		return new Promise((resolve, reject) => {
+			const reader = new FileReader();
+			reader.onload = (e) => {
+				const imageUrl = e.target?.result as string;
+				if (imageUrl) {
+					const img = new Image();
+					img.onload = () => {
+						const texture = Texture.from(img);
+						resolve(texture);
+					};
+					img.onerror = () => reject(new Error(`Failed to load image: ${file.name}`));
+					img.src = imageUrl;
+				} else {
+					reject(new Error(`Failed to read file: ${file.name}`));
+				}
+			};
+			reader.onerror = () => reject(reader.error);
 			reader.readAsDataURL(file);
 		});
 	}

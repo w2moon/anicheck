@@ -1,10 +1,12 @@
 import type { Res, ResGroup } from './ResGroup';
 import { ResType } from './ResGroup';
-import { Container, Sprite } from 'pixi.js';
+import { Container, Sprite, Assets } from 'pixi.js';
+import { Spine } from '@esotericsoftware/spine-pixi-v8';
 
 export class ResInstance {
 	container: Container;
 	private sprite?: Sprite;
+	private spine?: Spine;
 	private isDragging: boolean = false;
 	private dragStartX: number = 0;
 	private dragStartY: number = 0;
@@ -20,13 +22,13 @@ export class ResInstance {
 		this.setupDragEvents();
 	}
 
-	private createResource() {
+	private async createResource() {
 		switch (this.res.type) {
 			case ResType.Image:
 				this.createImageResource();
 				break;
 			case ResType.Spine:
-				this.createSpineResource();
+				await this.createSpineResource();
 				break;
 			default:
 				console.warn('未知的资源类型:', this.res.type);
@@ -46,9 +48,34 @@ export class ResInstance {
 		}
 	}
 
-	private createSpineResource() {
-		// TODO: 实现Spine资源创建
-		console.log('Spine资源创建功能待实现');
+	private async createSpineResource() {
+		const spineData = this.res.data as any; // ResSpine
+		if (spineData.skeletonAlias && spineData.atlasAlias) {
+			try {
+				// 直接使用已加载的Assets别名创建Spine实例
+				this.spine = Spine.from({
+					skeleton: spineData.skeletonAlias,
+					atlas: spineData.atlasAlias
+				});
+
+				if (this.spine) {
+					// 将Spine作为子元素添加到容器中
+					this.container.addChild(this.spine);
+
+					// 设置Spine居中
+					this.spine.x = 0;
+					this.spine.y = 0;
+				} else {
+					console.error('Spine.from 返回了 undefined');
+				}
+			} catch (error) {
+				console.error('创建Spine资源失败:', error);
+				console.error('skeletonAlias:', spineData.skeletonAlias);
+				console.error('atlasAlias:', spineData.atlasAlias);
+			}
+		} else {
+			console.error('缺少必要的Spine数据:', spineData);
+		}
 	}
 
 	private setupDragEvents() {
