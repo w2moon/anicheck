@@ -134,13 +134,28 @@ export class ResInstance {
 			if (this.game) {
 				this.game.selectResGroup(this.resGroup);
 			}
+
+			// 在全局监听鼠标移动和释放事件
+			this.setupGlobalDragEvents();
 		});
 
-		// 鼠标移动事件
-		this.container.on('pointermove', (event) => {
+		// 鼠标释放事件
+		this.container.on('pointerup', () => {
+			this.stopDragging();
+		});
+
+		// 鼠标离开事件（防止拖拽时鼠标离开元素导致无法释放）
+		this.container.on('pointerupoutside', () => {
+			this.stopDragging();
+		});
+	}
+
+	private setupGlobalDragEvents() {
+		// 在全局监听鼠标移动事件
+		const onGlobalPointerMove = (event: PointerEvent) => {
 			if (this.isDragging) {
-				const deltaX = (event.global.x - this.dragStartX) * window.devicePixelRatio;
-				const deltaY = (event.global.y - this.dragStartY) * window.devicePixelRatio;
+				const deltaX = (event.clientX - this.dragStartX) * window.devicePixelRatio;
+				const deltaY = (event.clientY - this.dragStartY) * window.devicePixelRatio;
 
 				const newX = this.initialX + deltaX;
 				const newY = this.initialY + deltaY;
@@ -148,17 +163,35 @@ export class ResInstance {
 				// 调用ResGroup的setPosition方法
 				this.resGroup.setPosition(newX, newY);
 			}
-		});
+		};
 
-		// 鼠标释放事件
-		this.container.on('pointerup', () => {
-			this.isDragging = false;
-		});
+		const onGlobalPointerUp = () => {
+			this.stopDragging();
+		};
 
-		// 鼠标离开事件（防止拖拽时鼠标离开元素导致无法释放）
-		this.container.on('pointerupoutside', () => {
+		// 添加全局事件监听器
+		document.addEventListener('pointermove', onGlobalPointerMove);
+		document.addEventListener('pointerup', onGlobalPointerUp);
+
+		// 保存事件监听器引用，以便后续移除
+		(this as any).globalPointerMove = onGlobalPointerMove;
+		(this as any).globalPointerUp = onGlobalPointerUp;
+	}
+
+	private stopDragging() {
+		if (this.isDragging) {
 			this.isDragging = false;
-		});
+
+			// 移除全局事件监听器
+			if ((this as any).globalPointerMove) {
+				document.removeEventListener('pointermove', (this as any).globalPointerMove);
+				(this as any).globalPointerMove = null;
+			}
+			if ((this as any).globalPointerUp) {
+				document.removeEventListener('pointerup', (this as any).globalPointerUp);
+				(this as any).globalPointerUp = null;
+			}
+		}
 	}
 
 	public isResGroup(resGroup: ResGroup) {
@@ -170,8 +203,8 @@ export class ResInstance {
 	}
 
 	public destroy() {
-		// 停止拖拽
-		this.isDragging = false;
+		// 停止拖拽并清理全局事件监听器
+		this.stopDragging();
 
 		// 销毁容器
 		if (this.container) {

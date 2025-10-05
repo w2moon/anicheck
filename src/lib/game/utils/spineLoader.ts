@@ -19,8 +19,6 @@ export class SpineLoader {
 			return;
 		}
 
-		console.log(`找到 ${spineGroups.length} 个Spine文件组，开始加载...`);
-
 		// 按文件名中的数字排序
 		const sortedGroups = spineGroups.sort((a, b) => {
 			const numA = this.extractFirstNumber(a.name);
@@ -42,7 +40,8 @@ export class SpineLoader {
 
 		// 按文件名分组
 		files.forEach((file) => {
-			const baseName = file.name.replace(/\.(skel|atlas|png)$/, '');
+			const baseName =
+				file.webkitRelativePath.split('/')?.[1] ?? file.name.replace(/\.(skel|atlas|png)$/, '');
 
 			if (!groups[baseName]) {
 				groups[baseName] = { png: [] };
