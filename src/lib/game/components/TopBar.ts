@@ -4,6 +4,7 @@ import { config } from '../config';
 import type { Game } from '../index';
 import { ImageLoader } from '../utils/imageLoader';
 import { DirectoryLoader } from '../utils/directoryLoader';
+import { InfoBar } from './InfoBar';
 
 export class TopBar {
 	private container!: Container;
@@ -16,12 +17,14 @@ export class TopBar {
 	private game: Game;
 	private imageLoader: ImageLoader;
 	private directoryLoader: DirectoryLoader;
+	private infoBar: InfoBar;
 
 	constructor(app: any, game: Game) {
 		this.app = app;
 		this.game = game;
 		this.imageLoader = new ImageLoader(game);
 		this.directoryLoader = new DirectoryLoader(game);
+		this.infoBar = new InfoBar(game);
 	}
 
 	public init() {
@@ -45,6 +48,9 @@ export class TopBar {
 
 		// 添加示例按钮
 		this.addSampleButtons();
+
+		// 初始化信息条
+		this.infoBar.init();
 	}
 
 	private createFileInput() {
@@ -356,5 +362,12 @@ export class TopBar {
 		background.clear();
 		background.rect(0, 0, window.innerWidth, 100);
 		background.fill(0x333333);
+
+		// 更新信息条大小
+		this.infoBar.updateSize();
+	}
+
+	public getInfoBar(): InfoBar {
+		return this.infoBar;
 	}
 }

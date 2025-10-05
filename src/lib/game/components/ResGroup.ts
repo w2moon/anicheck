@@ -22,7 +22,10 @@ export interface Res {
 }
 export class ResGroup {
 	private objs: ResInstance[] = [];
-	constructor(private res: Res[]) {
+	constructor(
+		private res: Res[],
+		private game?: any
+	) {
 		this.x = config.unitWidth / 2;
 		this.y = config.unitHeight / 2;
 	}
@@ -36,7 +39,7 @@ export class ResGroup {
 	createResInstance(idx: number) {
 		// 生成对应的ResInstance并返回
 		const res = this.res[idx % this.res.length];
-		const resInstance = new ResInstance(res, this);
+		const resInstance = new ResInstance(res, this, this.game);
 		resInstance.container.x = this.x;
 		resInstance.container.y = this.y;
 		resInstance.container.scale.set(this.scale);
@@ -71,5 +74,9 @@ export class ResGroup {
 		this.objs.forEach((obj) => {
 			obj.container.pivot.set(x, y);
 		});
+	}
+
+	getScale() {
+		return this.scale;
 	}
 }

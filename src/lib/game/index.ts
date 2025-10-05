@@ -12,6 +12,7 @@ export class Game {
 	private stageY: number = 0; // stage的Y偏移量
 	private maxScrollY: number = 0; // 最大滚动距离
 	private columnsPerRow: number = config.rowAmount; // 每行列数
+	private selectedResGroup: ResGroup | null = null; // 当前选中的对象组
 
 	constructor() {}
 
@@ -25,13 +26,44 @@ export class Game {
 	addResGroup(group: ResGroup) {
 		this.resGroups.push(group);
 		this.updateContainerUnits();
+		// 自动选中新添加的对象组
+		this.selectResGroup(group);
+	}
+
+	removeResGroup(group: ResGroup) {
+		const index = this.resGroups.indexOf(group);
+		if (index > -1) {
+			this.resGroups.splice(index, 1);
+			// 如果删除的是当前选中的对象组，清除选择
+			if (this.selectedResGroup === group) {
+				this.selectedResGroup = null;
+				this.topBar.getInfoBar().hide();
+			}
+			this.updateContainerUnits();
+		}
+	}
+
+	selectResGroup(group: ResGroup) {
+		this.selectedResGroup = group;
+		this.topBar.getInfoBar().show(group);
+	}
+
+	getApp() {
+		return this.app;
 	}
 
 	updateContainerUnits() {
-		// 获取resGroups中最长的值
-		const maxLength = Math.max(...this.resGroups.map((group) => group.getResCount()));
-		const needUnits = maxLength - this.containerUnits.length;
+		// 获取resGroups中最长的值，如果没有resGroups则为0
+		const maxLength =
+			this.resGroups.length > 0
+				? Math.max(...this.resGroups.map((group) => group.getResCount()))
+				: 0;
+
+		const currentUnits = this.containerUnits.length;
+		const needUnits = maxLength - currentUnits;
+
 		if (needUnits > 0) {
+			// 添加新的ContainerUnit
 			for (let i = 0; i < needUnits; i++) {
 				const unit = new ContainerUnit({
 					idx: this.containerUnits.length + 1,
@@ -40,6 +72,15 @@ export class Game {
 				});
 				this.containerUnits.push(unit);
 				this.app.stage.addChild(unit.getContainer());
+			}
+		} else if (needUnits < 0) {
+			// 删除多余的ContainerUnit
+			const unitsToRemove = Math.abs(needUnits);
+			for (let i = 0; i < unitsToRemove; i++) {
+				const unit = this.containerUnits.pop();
+				if (unit) {
+					this.app.stage.removeChild(unit.getContainer());
+				}
 			}
 		}
 
@@ -54,7 +95,7 @@ export class Game {
 	}
 
 	private layoutContainerUnits() {
-		const startY = 120; // 避开顶部按钮区域
+		const startY = 180; // 避开顶部按钮区域(100px)和信息条区域(80px)
 		const padding = 10; // 单元间距
 		const unitsPerRow = this.columnsPerRow; // 使用指定的列数
 
@@ -81,6 +122,14 @@ export class Game {
 	private updateResInstances() {
 		// 为每个ContainerUnit检查并添加对应的ResInstance
 		this.containerUnits.forEach((unit, index) => {
+			// 首先清理不再存在的ResGroup的ResInstance
+			const currentResGroups = new Set(this.resGroups);
+			const instancesToRemove = unit
+				.getResInstances()
+				.filter((instance) => !currentResGroups.has(instance.getResGroup()));
+			instancesToRemove.forEach((instance) => unit.removeResInstance(instance));
+
+			// 然后添加新的ResInstance
 			this.resGroups.forEach((group) => {
 				if (!unit.hasResGroup(group)) {
 					unit.addResInstance(group.createResInstance(index));

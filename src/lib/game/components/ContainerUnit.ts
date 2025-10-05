@@ -55,6 +55,24 @@ export class ContainerUnit {
 		this.container.addChild(resInstance.container);
 	}
 
+	removeResInstance(resInstance: ResInstance) {
+		const index = this.resInstances.indexOf(resInstance);
+		if (index > -1) {
+			this.resInstances.splice(index, 1);
+			this.container.removeChild(resInstance.container);
+		}
+	}
+
+	removeResGroup(resGroup: ResGroup) {
+		// 移除属于指定ResGroup的所有ResInstance
+		const instancesToRemove = this.resInstances.filter((instance) => instance.isResGroup(resGroup));
+		instancesToRemove.forEach((instance) => this.removeResInstance(instance));
+	}
+
+	getResInstances() {
+		return [...this.resInstances];
+	}
+
 	getContainer() {
 		return this.container;
 	}

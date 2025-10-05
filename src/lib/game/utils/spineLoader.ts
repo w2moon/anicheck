@@ -107,7 +107,7 @@ export class SpineLoader {
 			if (loadedCount === totalCount) {
 				// 过滤掉undefined的元素
 				const validResArray = resArray.filter((res) => res !== undefined);
-				const resGroup = new ResGroup(validResArray);
+				const resGroup = new ResGroup(validResArray, this.game);
 				this.game.addResGroup(resGroup);
 				console.log(`Spine目录加载完成，创建了包含 ${validResArray.length} 个Spine的ResGroup`);
 			}

@@ -27,7 +27,7 @@ export class ImageLoader {
 					};
 
 					// 创建ResGroup
-					const resGroup = new ResGroup([res]);
+					const resGroup = new ResGroup([res], this.game);
 
 					// 添加到游戏中的resGroups
 					this.game.addResGroup(resGroup);
@@ -68,7 +68,7 @@ export class ImageLoader {
 						if (loadedCount === totalCount) {
 							// 过滤掉undefined的元素（防止某些图片加载失败）
 							const validResArray = resArray.filter((res) => res !== undefined);
-							const resGroup = new ResGroup(validResArray);
+							const resGroup = new ResGroup(validResArray, this.game);
 							this.game.addResGroup(resGroup);
 							console.log(`目录加载完成，创建了包含 ${validResArray.length} 个图片的ResGroup`);
 						}

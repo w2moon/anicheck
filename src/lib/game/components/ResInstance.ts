@@ -2,6 +2,7 @@ import type { Res, ResGroup } from './ResGroup';
 import { ResType } from './ResGroup';
 import { Container, Sprite, Assets } from 'pixi.js';
 import { Spine } from '@esotericsoftware/spine-pixi-v8';
+import type { Game } from '../index';
 
 export class ResInstance {
 	container: Container;
@@ -15,7 +16,8 @@ export class ResInstance {
 
 	constructor(
 		private res: Res,
-		private resGroup: ResGroup
+		private resGroup: ResGroup,
+		private game?: Game
 	) {
 		this.container = new Container();
 		this.createResource();
@@ -90,6 +92,11 @@ export class ResInstance {
 			this.dragStartY = event.global.y;
 			this.initialX = this.container.x;
 			this.initialY = this.container.y;
+
+			// 选择当前对象组
+			if (this.game) {
+				this.game.selectResGroup(this.resGroup);
+			}
 		});
 
 		// 鼠标移动事件
@@ -119,5 +126,9 @@ export class ResInstance {
 
 	public isResGroup(resGroup: ResGroup) {
 		return this.resGroup === resGroup;
+	}
+
+	public getResGroup() {
+		return this.resGroup;
 	}
 }
