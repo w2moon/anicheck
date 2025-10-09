@@ -68,6 +68,9 @@ export class ResInstance {
 					this.spine.x = 0;
 					this.spine.y = 0;
 
+					// 检查动画完整性
+					this.checkSpineAnimations(spineData);
+
 					// 自动播放第一个动画（如果存在）
 					const animations = this.getSpineAnimations();
 					if (animations.length > 0) {
@@ -83,6 +86,46 @@ export class ResInstance {
 			}
 		} else {
 			console.error('缺少必要的Spine数据:', spineData);
+		}
+	}
+
+	/**
+	 * 检查Spine动画完整性
+	 * @param spineData Spine数据
+	 */
+	private checkSpineAnimations(spineData: ResSpine): void {
+		if (!this.spine) {
+			return;
+		}
+
+		// 获取ResGroup中第0个spine的动画列表作为基准
+		const baseAnimations = this.resGroup.getSpineAnimations();
+		if (baseAnimations.length === 0) {
+			return;
+		}
+
+		// 获取当前spine的实际动画列表
+		const actualAnimations: string[] = [];
+		if (this.spine.skeleton.data && this.spine.skeleton.data.animations) {
+			this.spine.skeleton.data.animations.forEach((animation) => {
+				actualAnimations.push(animation.name);
+			});
+		}
+
+		// 检查是否所有基准动画都存在
+		const missingAnimations: string[] = [];
+		baseAnimations.forEach((animName) => {
+			if (!actualAnimations.includes(animName)) {
+				missingAnimations.push(animName);
+			}
+		});
+
+		// 如果有缺失的动画，弹出警告
+		if (missingAnimations.length > 0) {
+			const spineName = spineData.skeletonAlias.replace(/^skeleton-/, '').replace(/-\d+$/, '');
+			const message = `Spine资源 "${spineName}" 缺少以下动画：\n${missingAnimations.join(', ')}`;
+			alert(message);
+			console.warn(message);
 		}
 	}
 
