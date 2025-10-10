@@ -11,6 +11,8 @@ export class InfoBar {
 	private deleteButton!: Button;
 	private animationSelect?: DropDown;
 	private animationLabel?: Text;
+	private alignmentSelect?: DropDown;
+	private alignmentLabel?: Text;
 	private selectedResGroup: ResGroup | null = null;
 	private game: Game;
 
@@ -175,6 +177,9 @@ export class InfoBar {
 
 		// 创建动画选择下拉框（初始隐藏）
 		this.createAnimationSelector(contentContainer);
+
+		// 创建对齐选择下拉框（初始隐藏）
+		this.createAlignmentSelector(contentContainer);
 	}
 
 	private createAnimationSelector(contentContainer: Container) {
@@ -221,6 +226,73 @@ export class InfoBar {
 		contentContainer.addChild(this.animationSelect);
 	}
 
+	private createAlignmentSelector(contentContainer: Container) {
+		// 对齐标签
+		this.alignmentLabel = new Text({
+			text: '对齐:',
+			style: new TextStyle({
+				fontFamily: 'Arial',
+				fontSize: 14,
+				fill: 0xffffff,
+				align: 'left'
+			})
+		});
+		this.alignmentLabel.x = 440;
+		this.alignmentLabel.y = 25;
+		this.alignmentLabel.visible = false;
+		contentContainer.addChild(this.alignmentLabel);
+
+		// 创建对齐选项
+		const alignmentOptions: DropDownOption[] = [
+			{ id: 0, text: '顶部中心' },
+			{ id: 1, text: '中心' },
+			{ id: 2, text: '底部中心' }
+		];
+
+		// 创建DropDown组件
+		this.alignmentSelect = new DropDown({
+			width: 120,
+			height: 25,
+			backgroundColor: 0xffffff,
+			hoverColor: 0xf0f0f0,
+			textColor: 0x000000,
+			textStyle: new TextStyle({
+				fontFamily: 'Arial',
+				fontSize: 12,
+				fill: 0x000000,
+				align: 'left'
+			}),
+			options: [],
+			onSelect: (option: DropDownOption) => {
+				if (this.selectedResGroup) {
+					// 根据选项设置对齐方式
+					switch (option.id) {
+						case 0: // 顶部中心
+							this.selectedResGroup.setImagePivot(0.5, 0);
+							break;
+						case 1: // 中心
+							this.selectedResGroup.setImagePivot(0.5, 0.5);
+							break;
+						case 2: // 底部中心
+							this.selectedResGroup.setImagePivot(0.5, 1);
+							break;
+					}
+				}
+			}
+		});
+
+		// 设置选项并更新显示
+		this.alignmentSelect.setOptions(alignmentOptions);
+		// 设置默认选项为"中心"
+		this.alignmentSelect.setSelectedOption(alignmentOptions[1]);
+
+		// 设置DropDown位置
+		this.alignmentSelect.x = 490;
+		this.alignmentSelect.y = 25;
+		this.alignmentSelect.visible = false;
+		contentContainer.addChild(this.alignmentSelect);
+	}
+
 	public show(resGroup: ResGroup) {
 		this.selectedResGroup = resGroup;
 		this.container.visible = true;
@@ -246,6 +318,19 @@ export class InfoBar {
 				this.animationSelect.visible = false;
 			}
 		}
+
+		// 检查是否为图片类型，显示或隐藏对齐选择器
+		if (resGroup.hasImageType()) {
+			if (this.alignmentLabel && this.alignmentSelect) {
+				this.alignmentLabel.visible = true;
+				this.alignmentSelect.visible = true;
+			}
+		} else {
+			if (this.alignmentLabel && this.alignmentSelect) {
+				this.alignmentLabel.visible = false;
+				this.alignmentSelect.visible = false;
+			}
+		}
 	}
 
 	public hide() {
@@ -255,6 +340,11 @@ export class InfoBar {
 		// 隐藏动画选择器
 		if (this.animationSelect) {
 			this.animationSelect.visible = false;
+		}
+
+		// 隐藏对齐选择器
+		if (this.alignmentSelect) {
+			this.alignmentSelect.visible = false;
 		}
 	}
 
@@ -276,6 +366,9 @@ export class InfoBar {
 		// 清理PIXI组件
 		if (this.animationSelect) {
 			this.animationSelect.destroy();
+		}
+		if (this.alignmentSelect) {
+			this.alignmentSelect.destroy();
 		}
 	}
 }

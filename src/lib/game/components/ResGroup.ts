@@ -90,6 +90,14 @@ export class ResGroup {
 	}
 
 	/**
+	 * 检查是否包含图片类型的资源
+	 * @returns 是否包含图片类型
+	 */
+	public hasImageType(): boolean {
+		return this.res.some((r) => r.type === ResType.Image);
+	}
+
+	/**
 	 * 获取Spine动画列表（从第一个Spine资源获取）
 	 * @returns 动画名称数组
 	 */
@@ -111,6 +119,19 @@ export class ResGroup {
 		this.objs.forEach((obj) => {
 			if (obj.isSpineType()) {
 				obj.setSpineAnimation(animationName, loop);
+			}
+		});
+	}
+
+	/**
+	 * 设置所有图片实例的锚点（对齐方式）
+	 * @param anchorX X轴锚点 (0-1)
+	 * @param anchorY Y轴锚点 (0-1)
+	 */
+	public setImagePivot(anchorX: number, anchorY: number): void {
+		this.objs.forEach((obj) => {
+			if (obj.isImageType()) {
+				obj.setPivot(anchorX, anchorY);
 			}
 		});
 	}

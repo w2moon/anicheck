@@ -160,6 +160,25 @@ export class ResInstance {
 		return this.res.type === ResType.Spine;
 	}
 
+	/**
+	 * 检查是否为图片类型
+	 * @returns 是否为图片类型
+	 */
+	public isImageType(): boolean {
+		return this.res.type === ResType.Image;
+	}
+
+	/**
+	 * 设置图片的锚点（对齐方式）
+	 * @param anchorX X轴锚点 (0-1)
+	 * @param anchorY Y轴锚点 (0-1)
+	 */
+	public setPivot(anchorX: number, anchorY: number): void {
+		if (this.res.type === ResType.Image && this.sprite) {
+			this.sprite.anchor.set(anchorX, anchorY);
+		}
+	}
+
 	private setupDragEvents() {
 		// 设置容器为可交互
 		this.container.eventMode = 'static';
