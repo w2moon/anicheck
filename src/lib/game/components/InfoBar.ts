@@ -16,6 +16,8 @@ export class InfoBar {
 	private loopCheckbox?: Button;
 	private loopCheckboxLabel?: Text;
 	private loopCheckboxContainer?: Container;
+	private playButton?: Button;
+	private playButtonLabel?: Text;
 	private selectedResGroup: ResGroup | null = null;
 	private game: Game;
 
@@ -184,6 +186,9 @@ export class InfoBar {
 		// 创建循环勾选框（初始隐藏）
 		this.createLoopCheckbox(contentContainer);
 
+		// 创建播放按钮（初始隐藏）
+		this.createPlayButton(contentContainer);
+
 		// 创建对齐选择下拉框（初始隐藏）
 		this.createAlignmentSelector(contentContainer);
 	}
@@ -325,6 +330,87 @@ export class InfoBar {
 		contentContainer.addChild(this.loopCheckboxContainer);
 	}
 
+	private createPlayButton(contentContainer: Container) {
+		// 播放按钮标签
+		this.playButtonLabel = new Text({
+			text: '播放:',
+			style: new TextStyle({
+				fontFamily: 'Arial',
+				fontSize: 14,
+				fill: 0xffffff,
+				align: 'left'
+			})
+		});
+		this.playButtonLabel.x = 500;
+		this.playButtonLabel.y = 25;
+		this.playButtonLabel.visible = false;
+		contentContainer.addChild(this.playButtonLabel);
+
+		// 创建播放按钮背景
+		const playButtonBg = new Graphics();
+		playButtonBg.roundRect(0, 0, 60, 25, 4);
+		playButtonBg.fill(0x4a90e2);
+		playButtonBg.stroke({ width: 1, color: 0x2c5aa0 });
+
+		// 创建播放按钮文本
+		const playButtonText = new Text({
+			text: '播放',
+			style: new TextStyle({
+				fontFamily: 'Arial',
+				fontSize: 12,
+				fill: 0xffffff,
+				align: 'center'
+			})
+		});
+		playButtonText.anchor.set(0.5);
+		playButtonText.x = 30;
+		playButtonText.y = 12.5;
+
+		// 创建播放按钮容器
+		const playButtonContainer = new Container();
+		playButtonContainer.addChild(playButtonBg);
+		playButtonContainer.addChild(playButtonText);
+		playButtonContainer.cursor = 'pointer';
+		playButtonContainer.x = 540;
+		playButtonContainer.y = 25;
+		playButtonContainer.visible = false;
+
+		// 创建按钮
+		this.playButton = new Button(playButtonContainer);
+
+		// 播放按钮点击事件
+		this.playButton.onPress.connect(() => {
+			if (this.selectedResGroup) {
+				// 获取当前选中的动画
+				const currentAnimation = this.getCurrentAnimation();
+				if (currentAnimation) {
+					// 重新播放当前动画
+					const loopEnabled = this.selectedResGroup.getLoopEnabled();
+					this.selectedResGroup.setSpineAnimation(currentAnimation, loopEnabled);
+				}
+			}
+		});
+
+		// 悬停效果
+		this.playButton.onHover.connect(() => {
+			playButtonBg.tint = 0x3a7bc8;
+		});
+
+		this.playButton.onOut.connect(() => {
+			playButtonBg.tint = 0xffffff;
+		});
+
+		this.playButton.onDown.connect(() => {
+			playButtonBg.tint = 0x2c5aa0;
+		});
+
+		this.playButton.onUp.connect(() => {
+			playButtonBg.tint = 0xffffff;
+		});
+
+		contentContainer.addChild(playButtonContainer);
+	}
+
 	private getCurrentAnimation(): string | null {
 		if (this.animationSelect && this.animationSelect.getSelectedOption()) {
 			return this.animationSelect.getSelectedOption()!.text;
@@ -434,6 +520,12 @@ export class InfoBar {
 				selectedBg.visible = loopEnabled;
 				checkboxBg.visible = !loopEnabled;
 			}
+
+			// 显示播放按钮
+			if (this.playButtonLabel && this.playButton) {
+				this.playButtonLabel.visible = true;
+				this.playButton.view.visible = true;
+			}
 		} else {
 			if (this.animationLabel && this.animationSelect) {
 				this.animationLabel.visible = false;
@@ -442,6 +534,10 @@ export class InfoBar {
 			if (this.loopCheckboxLabel && this.loopCheckboxContainer) {
 				this.loopCheckboxLabel.visible = false;
 				this.loopCheckboxContainer.visible = false;
+			}
+			if (this.playButtonLabel && this.playButton) {
+				this.playButtonLabel.visible = false;
+				this.playButton.view.visible = false;
 			}
 		}
 
@@ -471,6 +567,14 @@ export class InfoBar {
 		// 隐藏循环勾选框
 		if (this.loopCheckboxContainer) {
 			this.loopCheckboxContainer.visible = false;
+		}
+
+		// 隐藏播放按钮
+		if (this.playButtonLabel) {
+			this.playButtonLabel.visible = false;
+		}
+		if (this.playButton) {
+			this.playButton.view.visible = false;
 		}
 
 		// 隐藏对齐选择器
