@@ -111,15 +111,21 @@ export class Game {
 		const scaleX = totalUnitWidth > availableWidth ? availableWidth / totalUnitWidth : 1;
 		const actualUnitWidth = config.unitWidth * scaleX;
 		const actualUnitHeight = config.unitHeight * scaleX;
+		const actualPadding = padding * scaleX;
 
 		this.containerUnits.forEach((unit, index) => {
 			const row = Math.floor(index / unitsPerRow);
 			const col = index % unitsPerRow;
 
-			const x = padding + col * (actualUnitWidth + padding);
-			const y = startY + row * (actualUnitHeight + padding);
+			// 重新计算x坐标，确保不会超出边界
+			const x = padding + col * (actualUnitWidth + actualPadding);
+			const y = startY + row * (actualUnitHeight + actualPadding);
 
-			unit.getContainer().x = x;
+			// 确保x坐标加上单元宽度不会超出窗口边界
+			const maxX = window.innerWidth - actualUnitWidth - padding;
+			const finalX = Math.min(x, maxX);
+
+			unit.getContainer().x = finalX;
 			unit.getContainer().y = y;
 			unit.getContainer().scale.set(scaleX);
 		});
