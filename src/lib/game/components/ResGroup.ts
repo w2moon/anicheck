@@ -1,6 +1,6 @@
 import { Container, Sprite, Texture } from 'pixi.js';
 import { ResInstance } from './ResInstance';
-import type { Spine } from '@esotericsoftware/spine-pixi';
+import type { Spine } from '@esotericsoftware/spine-pixi-v8';
 import { config } from '../config';
 
 export enum ResType {
@@ -36,6 +36,7 @@ export class ResGroup {
 	private scale: number = 1;
 	private pivotX: number = 0;
 	private pivotY: number = 0;
+	private loopEnabled: boolean = true;
 
 	createResInstance(idx: number) {
 		// 生成对应的ResInstance并返回
@@ -134,5 +135,21 @@ export class ResGroup {
 				obj.setPivot(anchorX, anchorY);
 			}
 		});
+	}
+
+	/**
+	 * 设置循环播放状态
+	 * @param enabled 是否启用循环
+	 */
+	public setLoopEnabled(enabled: boolean): void {
+		this.loopEnabled = enabled;
+	}
+
+	/**
+	 * 获取循环播放状态
+	 * @returns 是否启用循环
+	 */
+	public getLoopEnabled(): boolean {
+		return this.loopEnabled;
 	}
 }

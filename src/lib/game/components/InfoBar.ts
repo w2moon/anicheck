@@ -13,6 +13,9 @@ export class InfoBar {
 	private animationLabel?: Text;
 	private alignmentSelect?: DropDown;
 	private alignmentLabel?: Text;
+	private loopCheckbox?: Button;
+	private loopCheckboxLabel?: Text;
+	private loopCheckboxContainer?: Container;
 	private selectedResGroup: ResGroup | null = null;
 	private game: Game;
 
@@ -178,6 +181,9 @@ export class InfoBar {
 		// 创建动画选择下拉框（初始隐藏）
 		this.createAnimationSelector(contentContainer);
 
+		// 创建循环勾选框（初始隐藏）
+		this.createLoopCheckbox(contentContainer);
+
 		// 创建对齐选择下拉框（初始隐藏）
 		this.createAlignmentSelector(contentContainer);
 	}
@@ -214,7 +220,8 @@ export class InfoBar {
 			options: [],
 			onSelect: (option: DropDownOption) => {
 				if (this.selectedResGroup) {
-					this.selectedResGroup.setSpineAnimation(option.text, true);
+					const loopEnabled = this.selectedResGroup.getLoopEnabled();
+					this.selectedResGroup.setSpineAnimation(option.text, loopEnabled);
 				}
 			}
 		});
@@ -224,6 +231,105 @@ export class InfoBar {
 		this.animationSelect.y = 25;
 		this.animationSelect.visible = false;
 		contentContainer.addChild(this.animationSelect);
+	}
+
+	private createLoopCheckbox(contentContainer: Container) {
+		// 循环标签
+		this.loopCheckboxLabel = new Text({
+			text: '循环:',
+			style: new TextStyle({
+				fontFamily: 'Arial',
+				fontSize: 14,
+				fill: 0xffffff,
+				align: 'left'
+			})
+		});
+		this.loopCheckboxLabel.x = 430;
+		this.loopCheckboxLabel.y = 25;
+		this.loopCheckboxLabel.visible = false;
+		contentContainer.addChild(this.loopCheckboxLabel);
+
+		// 创建勾选框容器
+		this.loopCheckboxContainer = new Container();
+		this.loopCheckboxContainer.x = 470;
+		this.loopCheckboxContainer.y = 25;
+		this.loopCheckboxContainer.visible = false;
+
+		// 创建勾选框背景
+		const checkboxBg = new Graphics();
+		checkboxBg.roundRect(0, 0, 20, 20, 3);
+		checkboxBg.fill(0xffffff);
+		checkboxBg.stroke({ width: 1, color: 0xcccccc });
+
+		// 创建勾选标记
+		const checkmark = new Graphics();
+		checkmark.stroke({ width: 2, color: 0x000000 });
+		checkmark.moveTo(4, 10);
+		checkmark.lineTo(8, 14);
+		checkmark.moveTo(8, 14);
+		checkmark.lineTo(16, 6);
+		checkmark.visible = false;
+
+		// 创建选中状态的背景（蓝色）
+		const selectedBg = new Graphics();
+		selectedBg.roundRect(0, 0, 20, 20, 3);
+		selectedBg.fill(0x4a90e2);
+		selectedBg.stroke({ width: 1, color: 0x2c5aa0 });
+		selectedBg.visible = false;
+
+		this.loopCheckboxContainer.addChild(checkboxBg);
+		this.loopCheckboxContainer.addChild(selectedBg);
+		this.loopCheckboxContainer.addChild(checkmark);
+
+		// 创建按钮
+		this.loopCheckbox = new Button(this.loopCheckboxContainer);
+		this.loopCheckboxContainer.cursor = 'pointer';
+
+		// 勾选框点击事件
+		this.loopCheckbox.onPress.connect(() => {
+			if (this.selectedResGroup) {
+				// 切换勾选状态
+				const isChecked = checkmark.visible;
+				checkmark.visible = !isChecked;
+				selectedBg.visible = !isChecked;
+				checkboxBg.visible = isChecked;
+
+				// 更新ResGroup的循环状态
+				this.selectedResGroup.setLoopEnabled(!isChecked);
+
+				// 重新播放当前动画以应用新的循环设置
+				const currentAnimation = this.getCurrentAnimation();
+				if (currentAnimation) {
+					this.selectedResGroup.setSpineAnimation(currentAnimation, !isChecked);
+				}
+			}
+		});
+
+		// 悬停效果
+		this.loopCheckbox.onHover.connect(() => {
+			if (checkboxBg.visible) {
+				checkboxBg.tint = 0xf0f0f0;
+			} else {
+				selectedBg.tint = 0x3a7bc8;
+			}
+		});
+
+		this.loopCheckbox.onOut.connect(() => {
+			if (checkboxBg.visible) {
+				checkboxBg.tint = 0xffffff;
+			} else {
+				selectedBg.tint = 0xffffff;
+			}
+		});
+
+		contentContainer.addChild(this.loopCheckboxContainer);
+	}
+
+	private getCurrentAnimation(): string | null {
+		if (this.animationSelect && this.animationSelect.getSelectedOption()) {
+			return this.animationSelect.getSelectedOption()!.text;
+		}
+		return null;
 	}
 
 	private createAlignmentSelector(contentContainer: Container) {
@@ -298,7 +404,7 @@ export class InfoBar {
 		this.container.visible = true;
 		this.scaleInput.value = resGroup.getScale().toString();
 
-		// 检查是否为Spine类型，显示或隐藏动画选择器
+		// 检查是否为Spine类型，显示或隐藏动画选择器和循环勾选框
 		if (resGroup.hasSpineType()) {
 			const animations = resGroup.getSpineAnimations();
 			if (this.animationLabel && this.animationSelect) {
@@ -312,10 +418,30 @@ export class InfoBar {
 				}));
 				this.animationSelect.setOptions(options);
 			}
+
+			// 显示循环勾选框
+			if (this.loopCheckboxLabel && this.loopCheckboxContainer) {
+				this.loopCheckboxLabel.visible = true;
+				this.loopCheckboxContainer.visible = true;
+
+				// 同步勾选框状态与ResGroup的循环状态
+				const checkboxBg = this.loopCheckboxContainer.children[0] as Graphics;
+				const selectedBg = this.loopCheckboxContainer.children[1] as Graphics;
+				const checkmark = this.loopCheckboxContainer.children[2] as Graphics;
+
+				const loopEnabled = resGroup.getLoopEnabled();
+				checkmark.visible = loopEnabled;
+				selectedBg.visible = loopEnabled;
+				checkboxBg.visible = !loopEnabled;
+			}
 		} else {
 			if (this.animationLabel && this.animationSelect) {
 				this.animationLabel.visible = false;
 				this.animationSelect.visible = false;
+			}
+			if (this.loopCheckboxLabel && this.loopCheckboxContainer) {
+				this.loopCheckboxLabel.visible = false;
+				this.loopCheckboxContainer.visible = false;
 			}
 		}
 
@@ -340,6 +466,11 @@ export class InfoBar {
 		// 隐藏动画选择器
 		if (this.animationSelect) {
 			this.animationSelect.visible = false;
+		}
+
+		// 隐藏循环勾选框
+		if (this.loopCheckboxContainer) {
+			this.loopCheckboxContainer.visible = false;
 		}
 
 		// 隐藏对齐选择器

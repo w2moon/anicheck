@@ -1,6 +1,6 @@
 import { Container, Graphics, Text, TextStyle } from 'pixi.js';
 import { Button, Input } from '@pixi/ui';
-import { config } from '../config';
+import { config, saveConfigToStorage } from '../config';
 import type { Game } from '../index';
 import { ImageLoader } from '../utils/imageLoader';
 import { DirectoryLoader } from '../utils/directoryLoader';
@@ -232,6 +232,8 @@ export class TopBar {
 			console.log('列数输入框确认:', text);
 			const columns = parseInt(text);
 			if (!isNaN(columns) && columns > 0) {
+				config.rowAmount = columns;
+				saveConfigToStorage();
 				this.game.updateColumnsPerRow(columns);
 			}
 		});
@@ -241,6 +243,7 @@ export class TopBar {
 			const width = parseInt(text);
 			if (!isNaN(width) && width > 0) {
 				config.unitWidth = width;
+				saveConfigToStorage();
 				this.game.updateContainerUnits();
 			}
 		});
@@ -250,6 +253,7 @@ export class TopBar {
 			const height = parseInt(text);
 			if (!isNaN(height) && height > 0) {
 				config.unitHeight = height;
+				saveConfigToStorage();
 				this.game.updateContainerUnits();
 			}
 		});
