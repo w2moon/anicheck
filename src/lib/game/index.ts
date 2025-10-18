@@ -54,6 +54,11 @@ export class Game {
 	}
 
 	updateContainerUnits() {
+		// 更新所有现有ContainerUnit的大小（包括mask）
+		this.containerUnits.forEach((unit) => {
+			unit.updateSize(config.unitWidth, config.unitHeight);
+		});
+
 		// 获取resGroups中最长的值，如果没有resGroups则为0
 		const maxLength =
 			this.resGroups.length > 0
