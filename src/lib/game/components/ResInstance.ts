@@ -222,8 +222,11 @@ export class ResInstance {
 		// 在全局监听鼠标移动事件
 		const onGlobalPointerMove = (event: PointerEvent) => {
 			if (this.isDragging) {
-				const deltaX = (event.clientX - this.dragStartX) * window.devicePixelRatio;
-				const deltaY = (event.clientY - this.dragStartY) * window.devicePixelRatio;
+				// 获取ContainerUnit的缩放因子
+				const containerUnitScale = this.getContainerUnitScale();
+
+				const deltaX = (event.clientX - this.dragStartX) / containerUnitScale;
+				const deltaY = (event.clientY - this.dragStartY) / containerUnitScale;
 
 				const newX = this.initialX + deltaX;
 				const newY = this.initialY + deltaY;
@@ -268,6 +271,22 @@ export class ResInstance {
 
 	public getResGroup() {
 		return this.resGroup;
+	}
+
+	/**
+	 * 获取ContainerUnit的缩放因子
+	 * @returns ContainerUnit的缩放因子
+	 */
+	private getContainerUnitScale(): number {
+		// 通过容器的父级找到ContainerUnit的缩放因子
+		let current = this.container.parent;
+		while (current) {
+			if (current.label === 'ContainerUnit') {
+				return current.scale.x; // 假设x和y缩放相同
+			}
+			current = current.parent;
+		}
+		return 1; // 默认缩放因子为1
 	}
 
 	public destroy() {
