@@ -23,6 +23,7 @@ export interface Res {
 }
 export class ResGroup {
 	private objs: ResInstance[] = [];
+	private useRelativePosition: boolean = false;
 	constructor(
 		private res: Res[],
 		private game?: any

@@ -14,6 +14,9 @@ export class ResInstance {
 	private initialX: number = 0;
 	private initialY: number = 0;
 
+	private relativeX: number = 0;
+	private relativeY: number = 0;
+
 	constructor(
 		private res: Res,
 		private resGroup: ResGroup,
