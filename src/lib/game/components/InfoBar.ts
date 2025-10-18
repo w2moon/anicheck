@@ -503,6 +503,15 @@ export class InfoBar {
 					text: name
 				}));
 				this.animationSelect.setOptions(options);
+
+				// 设置当前选中的动画
+				const currentAnimation = resGroup.getCurrentAnimation();
+				if (currentAnimation) {
+					const currentOption = options.find((option) => option.text === currentAnimation);
+					if (currentOption) {
+						this.animationSelect.setSelectedOption(currentOption);
+					}
+				}
 			}
 
 			// 显示循环勾选框

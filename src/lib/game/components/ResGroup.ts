@@ -37,6 +37,7 @@ export class ResGroup {
 	private pivotX: number = 0;
 	private pivotY: number = 0;
 	private loopEnabled: boolean = true;
+	private currentAnimation: string | null = null;
 
 	createResInstance(idx: number) {
 		// 生成对应的ResInstance并返回
@@ -117,6 +118,7 @@ export class ResGroup {
 	 * @param loop 是否循环播放
 	 */
 	public setSpineAnimation(animationName: string, loop: boolean = true): void {
+		this.currentAnimation = animationName;
 		this.objs.forEach((obj) => {
 			if (obj.isSpineType()) {
 				obj.setSpineAnimation(animationName, loop);
@@ -151,5 +153,13 @@ export class ResGroup {
 	 */
 	public getLoopEnabled(): boolean {
 		return this.loopEnabled;
+	}
+
+	/**
+	 * 获取当前动画名称
+	 * @returns 当前动画名称
+	 */
+	public getCurrentAnimation(): string | null {
+		return this.currentAnimation;
 	}
 }

@@ -71,10 +71,16 @@ export class ResInstance {
 					// 检查动画完整性
 					this.checkSpineAnimations(spineData);
 
-					// 自动播放第一个动画（如果存在）
+					// 播放ResGroup中记录的当前动画，如果没有则播放第一个动画
 					const animations = this.getSpineAnimations();
 					if (animations.length > 0) {
-						this.spine.state.setAnimation(0, animations[0], true); // true 表示循环播放
+						const currentAnimation = this.resGroup.getCurrentAnimation();
+						const animationToPlay =
+							currentAnimation && animations.includes(currentAnimation)
+								? currentAnimation
+								: animations[0];
+						const loopEnabled = this.resGroup.getLoopEnabled();
+						this.spine.state.setAnimation(0, animationToPlay, loopEnabled);
 					}
 				} else {
 					console.error('Spine.from 返回了 undefined');
