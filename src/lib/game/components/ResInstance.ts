@@ -206,8 +206,20 @@ export class ResInstance {
 			this.isDragging = true;
 			this.dragStartX = event.global.x;
 			this.dragStartY = event.global.y;
-			this.initialX = this.container.x;
-			this.initialY = this.container.y;
+
+			// 根据是否使用相对位置来设置初始位置
+			if (
+				(this.resGroup as any).getUseRelativePosition &&
+				(this.resGroup as any).getUseRelativePosition()
+			) {
+				// 相对位置模式：记录当前容器的绝对位置
+				this.initialX = this.container.x;
+				this.initialY = this.container.y;
+			} else {
+				// 非相对位置模式：记录组的基准位置，而不是容器的实际位置
+				this.initialX = (this.resGroup as any).getX ? (this.resGroup as any).getX() : 0;
+				this.initialY = (this.resGroup as any).getY ? (this.resGroup as any).getY() : 0;
+			}
 
 			// 选择当前对象组并显示ResInstance坐标信息
 			if (this.game) {
@@ -268,7 +280,8 @@ export class ResInstance {
 						}
 					}
 				} else {
-					// 调用ResGroup的setPosition方法，整体移动
+					// 非相对位置模式：直接设置组的位置
+					// 注意：这里使用newX和newY作为组的基准位置，而不是容器的实际位置
 					this.resGroup.setPosition(newX, newY);
 				}
 			}

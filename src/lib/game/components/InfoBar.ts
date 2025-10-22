@@ -714,13 +714,13 @@ export class InfoBar {
 	private createExportButton(contentContainer: Container) {
 		// 创建导出按钮背景
 		const exportButtonBg = new Graphics();
-		exportButtonBg.roundRect(0, 0, 80, 30, 6);
+		exportButtonBg.roundRect(0, 0, 120, 30, 6);
 		exportButtonBg.fill(0x4a90e2);
 		exportButtonBg.stroke({ width: 2, color: 0xffffff });
 
 		// 创建导出按钮文本
 		const exportButtonText = new Text({
-			text: '导出',
+			text: '导出相对位置',
 			style: new TextStyle({
 				fontFamily: 'Arial',
 				fontSize: 14,
@@ -729,7 +729,7 @@ export class InfoBar {
 			})
 		});
 		exportButtonText.anchor.set(0.5);
-		exportButtonText.x = 40;
+		exportButtonText.x = 60;
 		exportButtonText.y = 15;
 
 		// 创建导出按钮容器
