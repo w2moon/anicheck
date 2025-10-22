@@ -60,8 +60,14 @@ export class ResGroup {
 		this.x = x;
 		this.y = y;
 		this.objs.forEach((obj) => {
-			obj.container.x = x;
-			obj.container.y = y;
+			// 根据是否使用相对位置决定如何更新实例位置
+			if ((obj as any).getRelativeX && (obj as any).getRelativeY) {
+				obj.container.x = x + (obj as any).getRelativeX();
+				obj.container.y = y + (obj as any).getRelativeY();
+			} else {
+				obj.container.x = x;
+				obj.container.y = y;
+			}
 		});
 	}
 
@@ -162,5 +168,23 @@ export class ResGroup {
 	 */
 	public getCurrentAnimation(): string | null {
 		return this.currentAnimation;
+	}
+
+	public setUseRelativePosition(enabled: boolean): void {
+		this.useRelativePosition = enabled;
+		// 切换模式时，立即刷新实例位置以反映当前基准点
+		this.setPosition(this.x, this.y);
+	}
+
+	public getUseRelativePosition(): boolean {
+		return this.useRelativePosition;
+	}
+
+	public getX(): number {
+		return this.x;
+	}
+
+	public getY(): number {
+		return this.y;
 	}
 }

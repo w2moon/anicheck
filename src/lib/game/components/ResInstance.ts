@@ -27,6 +27,14 @@ export class ResInstance {
 		this.setupDragEvents();
 	}
 
+	getRelativeX(): number {
+		return this.relativeX;
+	}
+
+	getRelativeY(): number {
+		return this.relativeY;
+	}
+
 	private async createResource() {
 		switch (this.res.type) {
 			case ResType.Image:
@@ -234,8 +242,22 @@ export class ResInstance {
 				const newX = this.initialX + deltaX;
 				const newY = this.initialY + deltaY;
 
-				// 调用ResGroup的setPosition方法
-				this.resGroup.setPosition(newX, newY);
+				// 如果启用相对位置：更新相对坐标；否则更新组位置
+				if (
+					(this.resGroup as any).getUseRelativePosition &&
+					(this.resGroup as any).getUseRelativePosition()
+				) {
+					// 基于当前组的绝对基准点，修改本实例的相对偏移
+					const groupX = (this.resGroup as any).getX ? (this.resGroup as any).getX() : 0;
+					const groupY = (this.resGroup as any).getY ? (this.resGroup as any).getY() : 0;
+					this.relativeX = newX - groupX;
+					this.relativeY = newY - groupY;
+					this.container.x = groupX + this.relativeX;
+					this.container.y = groupY + this.relativeY;
+				} else {
+					// 调用ResGroup的setPosition方法，整体移动
+					this.resGroup.setPosition(newX, newY);
+				}
 			}
 		};
 

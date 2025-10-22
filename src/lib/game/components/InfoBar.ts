@@ -16,6 +16,9 @@ export class InfoBar {
 	private loopCheckbox?: Button;
 	private loopCheckboxLabel?: Text;
 	private loopCheckboxContainer?: Container;
+	private relativeCheckbox?: Button;
+	private relativeCheckboxLabel?: Text;
+	private relativeCheckboxContainer?: Container;
 	private playButton?: Button;
 	private playButtonLabel?: Text;
 	private selectedResGroup: ResGroup | null = null;
@@ -186,6 +189,9 @@ export class InfoBar {
 		// 创建循环勾选框（初始隐藏）
 		this.createLoopCheckbox(contentContainer);
 
+		// 创建相对位置勾选框（初始隐藏）
+		this.createRelativePositionCheckbox(contentContainer);
+
 		// 创建播放按钮（初始隐藏）
 		this.createPlayButton(contentContainer);
 
@@ -328,6 +334,87 @@ export class InfoBar {
 		});
 
 		contentContainer.addChild(this.loopCheckboxContainer);
+	}
+
+	private createRelativePositionCheckbox(contentContainer: Container) {
+		// 相对位置标签
+		this.relativeCheckboxLabel = new Text({
+			text: '相对位置:',
+			style: new TextStyle({
+				fontFamily: 'Arial',
+				fontSize: 14,
+				fill: 0xffffff,
+				align: 'left'
+			})
+		});
+		this.relativeCheckboxLabel.x = 580;
+		this.relativeCheckboxLabel.y = 25;
+		this.relativeCheckboxLabel.visible = true;
+		contentContainer.addChild(this.relativeCheckboxLabel);
+
+		// 勾选框容器
+		this.relativeCheckboxContainer = new Container();
+		this.relativeCheckboxContainer.x = 650;
+		this.relativeCheckboxContainer.y = 25;
+		this.relativeCheckboxContainer.visible = true;
+
+		// 创建勾选框背景
+		const checkboxBg = new Graphics();
+		checkboxBg.roundRect(0, 0, 20, 20, 3);
+		checkboxBg.fill(0xffffff);
+		checkboxBg.stroke({ width: 1, color: 0xcccccc });
+
+		// 创建勾选标记
+		const checkmark = new Graphics();
+		checkmark.stroke({ width: 2, color: 0x000000 });
+		checkmark.moveTo(4, 10);
+		checkmark.lineTo(8, 14);
+		checkmark.moveTo(8, 14);
+		checkmark.lineTo(16, 6);
+		checkmark.visible = false;
+
+		// 选中背景
+		const selectedBg = new Graphics();
+		selectedBg.roundRect(0, 0, 20, 20, 3);
+		selectedBg.fill(0x4a90e2);
+		selectedBg.stroke({ width: 1, color: 0x2c5aa0 });
+		selectedBg.visible = false;
+
+		this.relativeCheckboxContainer.addChild(checkboxBg);
+		this.relativeCheckboxContainer.addChild(selectedBg);
+		this.relativeCheckboxContainer.addChild(checkmark);
+
+		this.relativeCheckbox = new Button(this.relativeCheckboxContainer);
+		this.relativeCheckboxContainer.cursor = 'pointer';
+
+		// 点击切换相对位置模式
+		this.relativeCheckbox.onPress.connect(() => {
+			if (this.selectedResGroup) {
+				const isChecked = checkmark.visible;
+				checkmark.visible = !isChecked;
+				selectedBg.visible = !isChecked;
+				checkboxBg.visible = isChecked;
+				this.selectedResGroup.setUseRelativePosition(!isChecked);
+			}
+		});
+
+		this.relativeCheckbox.onHover.connect(() => {
+			if (checkboxBg.visible) {
+				checkboxBg.tint = 0xf0f0f0;
+			} else {
+				selectedBg.tint = 0x3a7bc8;
+			}
+		});
+
+		this.relativeCheckbox.onOut.connect(() => {
+			if (checkboxBg.visible) {
+				checkboxBg.tint = 0xffffff;
+			} else {
+				selectedBg.tint = 0xffffff;
+			}
+		});
+
+		contentContainer.addChild(this.relativeCheckboxContainer);
 	}
 
 	private createPlayButton(contentContainer: Container) {
@@ -548,6 +635,19 @@ export class InfoBar {
 				this.playButtonLabel.visible = false;
 				this.playButton.view.visible = false;
 			}
+		}
+
+		// 同步相对位置勾选框状态
+		if (this.relativeCheckboxContainer) {
+			const checkboxBg = this.relativeCheckboxContainer.children[0] as Graphics;
+			const selectedBg = this.relativeCheckboxContainer.children[1] as Graphics;
+			const checkmark = this.relativeCheckboxContainer.children[2] as Graphics;
+			const enabled = (this.selectedResGroup as any).getUseRelativePosition
+				? (this.selectedResGroup as any).getUseRelativePosition()
+				: false;
+			checkmark.visible = enabled;
+			selectedBg.visible = enabled;
+			checkboxBg.visible = !enabled;
 		}
 
 		// 检查是否为图片类型，显示或隐藏对齐选择器
