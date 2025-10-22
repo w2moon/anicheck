@@ -25,6 +25,8 @@ export class InfoBar {
 	private selectedResInstance: any = null; // 添加选中的ResInstance引用
 	private relativeXText?: Text;
 	private relativeYText?: Text;
+	private positionXText?: Text;
+	private positionYText?: Text;
 	private exportButton?: Button;
 	private game: Game;
 
@@ -204,6 +206,9 @@ export class InfoBar {
 
 		// 创建相对坐标显示文本
 		this.createRelativePositionTexts(contentContainer);
+
+		// 创建位置坐标显示文本
+		this.createPositionTexts(contentContainer);
 
 		// 创建导出按钮
 		this.createExportButton(contentContainer);
@@ -644,6 +649,68 @@ export class InfoBar {
 		contentContainer.addChild(this.relativeYText);
 	}
 
+	private createPositionTexts(contentContainer: Container) {
+		// 位置X坐标标签
+		const positionXLabel = new Text({
+			text: '位置X:',
+			style: new TextStyle({
+				fontFamily: 'Arial',
+				fontSize: 14,
+				fill: 0xffffff,
+				align: 'left'
+			})
+		});
+		positionXLabel.x = 0;
+		positionXLabel.y = 50;
+		positionXLabel.visible = false;
+		contentContainer.addChild(positionXLabel);
+
+		// 位置X坐标值
+		this.positionXText = new Text({
+			text: '0.0',
+			style: new TextStyle({
+				fontFamily: 'Arial',
+				fontSize: 14,
+				fill: 0x00ff00,
+				align: 'left'
+			})
+		});
+		this.positionXText.x = 50;
+		this.positionXText.y = 50;
+		this.positionXText.visible = false;
+		contentContainer.addChild(this.positionXText);
+
+		// 位置Y坐标标签
+		const positionYLabel = new Text({
+			text: '位置Y:',
+			style: new TextStyle({
+				fontFamily: 'Arial',
+				fontSize: 14,
+				fill: 0xffffff,
+				align: 'left'
+			})
+		});
+		positionYLabel.x = 100;
+		positionYLabel.y = 50;
+		positionYLabel.visible = false;
+		contentContainer.addChild(positionYLabel);
+
+		// 位置Y坐标值
+		this.positionYText = new Text({
+			text: '0.0',
+			style: new TextStyle({
+				fontFamily: 'Arial',
+				fontSize: 14,
+				fill: 0x00ff00,
+				align: 'left'
+			})
+		});
+		this.positionYText.x = 150;
+		this.positionYText.y = 50;
+		this.positionYText.visible = false;
+		contentContainer.addChild(this.positionYText);
+	}
+
 	private createExportButton(contentContainer: Container) {
 		// 创建导出按钮背景
 		const exportButtonBg = new Graphics();
@@ -853,6 +920,16 @@ export class InfoBar {
 		}
 	}
 
+	public updateResGroupPosition(resGroup: ResGroup) {
+		if (this.selectedResGroup === resGroup && this.positionXText && this.positionYText) {
+			const positionX = resGroup.getX();
+			const positionY = resGroup.getY();
+
+			this.positionXText.text = positionX.toFixed(1);
+			this.positionYText.text = positionY.toFixed(1);
+		}
+	}
+
 	public show(resGroup: ResGroup, resInstance?: any) {
 		this.selectedResGroup = resGroup;
 		this.selectedResInstance = resInstance || null;
@@ -947,6 +1024,9 @@ export class InfoBar {
 
 		// 显示相对坐标信息
 		this.updateRelativePositionDisplay();
+
+		// 显示位置坐标信息
+		this.updatePositionDisplay();
 	}
 
 	private updateRelativePositionDisplay() {
@@ -986,6 +1066,46 @@ export class InfoBar {
 
 			if (relativeXLabel) relativeXLabel.visible = false;
 			if (relativeYLabel) relativeYLabel.visible = false;
+		}
+	}
+
+	private updatePositionDisplay() {
+		if (this.selectedResGroup && this.positionXText && this.positionYText) {
+			const positionX = this.selectedResGroup.getX();
+			const positionY = this.selectedResGroup.getY();
+
+			this.positionXText.text = positionX.toFixed(1);
+			this.positionYText.text = positionY.toFixed(1);
+
+			this.positionXText.visible = true;
+			this.positionYText.visible = true;
+
+			// 显示标签
+			const contentContainer = this.container.children[2]; // contentContainer是第3个子元素
+			const positionXLabel = contentContainer.children.find(
+				(child) => child instanceof Text && child.text === '位置X:'
+			) as Text;
+			const positionYLabel = contentContainer.children.find(
+				(child) => child instanceof Text && child.text === '位置Y:'
+			) as Text;
+
+			if (positionXLabel) positionXLabel.visible = true;
+			if (positionYLabel) positionYLabel.visible = true;
+		} else {
+			if (this.positionXText) this.positionXText.visible = false;
+			if (this.positionYText) this.positionYText.visible = false;
+
+			// 隐藏标签
+			const contentContainer = this.container.children[2];
+			const positionXLabel = contentContainer.children.find(
+				(child) => child instanceof Text && child.text === '位置X:'
+			) as Text;
+			const positionYLabel = contentContainer.children.find(
+				(child) => child instanceof Text && child.text === '位置Y:'
+			) as Text;
+
+			if (positionXLabel) positionXLabel.visible = false;
+			if (positionYLabel) positionYLabel.visible = false;
 		}
 	}
 

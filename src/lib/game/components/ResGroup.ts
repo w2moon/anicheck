@@ -69,6 +69,14 @@ export class ResGroup {
 				obj.container.y = y;
 			}
 		});
+
+		// 通知InfoBar更新ResGroup位置显示
+		if (this.game) {
+			const infoBar = this.game.getInfoBar();
+			if (infoBar) {
+				infoBar.updateResGroupPosition(this);
+			}
+		}
 	}
 
 	setScale(scale: number) {
