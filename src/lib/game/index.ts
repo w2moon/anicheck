@@ -53,6 +53,10 @@ export class Game {
 		return this.app;
 	}
 
+	getInfoBar() {
+		return this.topBar.getInfoBar();
+	}
+
 	updateContainerUnits() {
 		// 更新所有现有ContainerUnit的大小（包括mask）
 		this.containerUnits.forEach((unit) => {

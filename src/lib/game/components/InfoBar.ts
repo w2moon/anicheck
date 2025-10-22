@@ -22,6 +22,9 @@ export class InfoBar {
 	private playButton?: Button;
 	private playButtonLabel?: Text;
 	private selectedResGroup: ResGroup | null = null;
+	private selectedResInstance: any = null; // 添加选中的ResInstance引用
+	private relativeXText?: Text;
+	private relativeYText?: Text;
 	private game: Game;
 
 	constructor(game: Game) {
@@ -197,6 +200,9 @@ export class InfoBar {
 
 		// 创建对齐选择下拉框（初始隐藏）
 		this.createAlignmentSelector(contentContainer);
+
+		// 创建相对坐标显示文本
+		this.createRelativePositionTexts(contentContainer);
 	}
 
 	private createAnimationSelector(contentContainer: Container) {
@@ -572,8 +578,81 @@ export class InfoBar {
 		contentContainer.addChild(this.alignmentSelect);
 	}
 
-	public show(resGroup: ResGroup) {
+	private createRelativePositionTexts(contentContainer: Container) {
+		// 相对X坐标标签
+		const relativeXLabel = new Text({
+			text: '相对X:',
+			style: new TextStyle({
+				fontFamily: 'Arial',
+				fontSize: 14,
+				fill: 0xffffff,
+				align: 'left'
+			})
+		});
+		relativeXLabel.x = 720;
+		relativeXLabel.y = 25;
+		relativeXLabel.visible = false;
+		contentContainer.addChild(relativeXLabel);
+
+		// 相对X坐标值
+		this.relativeXText = new Text({
+			text: '0.0',
+			style: new TextStyle({
+				fontFamily: 'Arial',
+				fontSize: 14,
+				fill: 0xffff00,
+				align: 'left'
+			})
+		});
+		this.relativeXText.x = 770;
+		this.relativeXText.y = 25;
+		this.relativeXText.visible = false;
+		contentContainer.addChild(this.relativeXText);
+
+		// 相对Y坐标标签
+		const relativeYLabel = new Text({
+			text: '相对Y:',
+			style: new TextStyle({
+				fontFamily: 'Arial',
+				fontSize: 14,
+				fill: 0xffffff,
+				align: 'left'
+			})
+		});
+		relativeYLabel.x = 820;
+		relativeYLabel.y = 25;
+		relativeYLabel.visible = false;
+		contentContainer.addChild(relativeYLabel);
+
+		// 相对Y坐标值
+		this.relativeYText = new Text({
+			text: '0.0',
+			style: new TextStyle({
+				fontFamily: 'Arial',
+				fontSize: 14,
+				fill: 0xffff00,
+				align: 'left'
+			})
+		});
+		this.relativeYText.x = 870;
+		this.relativeYText.y = 25;
+		this.relativeYText.visible = false;
+		contentContainer.addChild(this.relativeYText);
+	}
+
+	public updateResInstanceCoordinates(resInstance: any) {
+		if (this.selectedResInstance === resInstance && this.relativeXText && this.relativeYText) {
+			const relativeX = resInstance.getRelativeX();
+			const relativeY = resInstance.getRelativeY();
+
+			this.relativeXText.text = relativeX.toFixed(1);
+			this.relativeYText.text = relativeY.toFixed(1);
+		}
+	}
+
+	public show(resGroup: ResGroup, resInstance?: any) {
 		this.selectedResGroup = resGroup;
+		this.selectedResInstance = resInstance || null;
 		this.container.visible = true;
 		this.scaleInput.value = resGroup.getScale().toString();
 
@@ -662,10 +741,54 @@ export class InfoBar {
 				this.alignmentSelect.visible = false;
 			}
 		}
+
+		// 显示相对坐标信息
+		this.updateRelativePositionDisplay();
+	}
+
+	private updateRelativePositionDisplay() {
+		if (this.selectedResInstance && this.relativeXText && this.relativeYText) {
+			const relativeX = this.selectedResInstance.getRelativeX();
+			const relativeY = this.selectedResInstance.getRelativeY();
+
+			this.relativeXText.text = relativeX.toFixed(1);
+			this.relativeYText.text = relativeY.toFixed(1);
+
+			this.relativeXText.visible = true;
+			this.relativeYText.visible = true;
+
+			// 显示标签
+			const contentContainer = this.container.children[2]; // contentContainer是第3个子元素
+			const relativeXLabel = contentContainer.children.find(
+				(child) => child instanceof Text && child.text === '相对X:'
+			) as Text;
+			const relativeYLabel = contentContainer.children.find(
+				(child) => child instanceof Text && child.text === '相对Y:'
+			) as Text;
+
+			if (relativeXLabel) relativeXLabel.visible = true;
+			if (relativeYLabel) relativeYLabel.visible = true;
+		} else {
+			if (this.relativeXText) this.relativeXText.visible = false;
+			if (this.relativeYText) this.relativeYText.visible = false;
+
+			// 隐藏标签
+			const contentContainer = this.container.children[2];
+			const relativeXLabel = contentContainer.children.find(
+				(child) => child instanceof Text && child.text === '相对X:'
+			) as Text;
+			const relativeYLabel = contentContainer.children.find(
+				(child) => child instanceof Text && child.text === '相对Y:'
+			) as Text;
+
+			if (relativeXLabel) relativeXLabel.visible = false;
+			if (relativeYLabel) relativeYLabel.visible = false;
+		}
 	}
 
 	public hide() {
 		this.selectedResGroup = null;
+		this.selectedResInstance = null;
 		this.container.visible = false;
 
 		// 隐藏动画选择器

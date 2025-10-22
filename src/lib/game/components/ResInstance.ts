@@ -209,9 +209,14 @@ export class ResInstance {
 			this.initialX = this.container.x;
 			this.initialY = this.container.y;
 
-			// 选择当前对象组
+			// 选择当前对象组并显示ResInstance坐标信息
 			if (this.game) {
 				this.game.selectResGroup(this.resGroup);
+				// 通知InfoBar显示当前ResInstance的坐标信息
+				const infoBar = this.game.getInfoBar();
+				if (infoBar) {
+					infoBar.show(this.resGroup, this);
+				}
 			}
 
 			// 在全局监听鼠标移动和释放事件
@@ -254,6 +259,14 @@ export class ResInstance {
 					this.relativeY = newY - groupY;
 					this.container.x = groupX + this.relativeX;
 					this.container.y = groupY + this.relativeY;
+
+					// 实时更新InfoBar中的坐标显示
+					if (this.game) {
+						const infoBar = this.game.getInfoBar();
+						if (infoBar) {
+							infoBar.updateResInstanceCoordinates(this);
+						}
+					}
 				} else {
 					// 调用ResGroup的setPosition方法，整体移动
 					this.resGroup.setPosition(newX, newY);
