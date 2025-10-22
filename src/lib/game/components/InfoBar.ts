@@ -725,26 +725,42 @@ export class InfoBar {
 			">
 				<div style="
 					background-color: white;
-					padding: 20px;
 					border-radius: 8px;
 					box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-					max-width: 500px;
-					width: 90%;
-					max-height: 80%;
-					overflow-y: auto;
+					width: 500px;
+					height: 400px;
+					display: flex;
+					flex-direction: column;
 				">
-					<h3 style="margin-top: 0; color: #333;">导出坐标数据</h3>
-					<pre id="exportData" style="
-						background-color: #f5f5f5;
-						padding: 15px;
-						border-radius: 4px;
-						overflow-x: auto;
-						font-family: monospace;
-						font-size: 14px;
-						white-space: pre-wrap;
-						word-break: break-all;
-					">${JSON.stringify(instancesData, null, 2)}</pre>
-					<div style="margin-top: 20px; text-align: right;">
+					<div style="
+						padding: 20px 20px 0 20px;
+						flex-shrink: 0;
+					">
+						<h3 style="margin-top: 0; color: #333;">导出坐标数据</h3>
+					</div>
+					<div style="
+						flex: 1;
+						padding: 0 20px;
+						overflow-y: auto;
+					">
+						<pre id="exportData" style="
+							background-color: #f5f5f5;
+							padding: 15px;
+							border-radius: 4px;
+							overflow-x: auto;
+							font-family: monospace;
+							font-size: 14px;
+							white-space: pre-wrap;
+							word-break: break-all;
+							margin: 0;
+						">${JSON.stringify(instancesData, null, 2)}</pre>
+					</div>
+					<div style="
+						padding: 20px;
+						text-align: right;
+						flex-shrink: 0;
+						border-top: 1px solid #eee;
+					">
 						<button id="copyButton" style="
 							background-color: #4a90e2;
 							color: white;
