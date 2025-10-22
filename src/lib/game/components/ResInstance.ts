@@ -228,6 +228,8 @@ export class ResInstance {
 				const infoBar = this.game.getInfoBar();
 				if (infoBar) {
 					infoBar.show(this.resGroup, this);
+					// 设置拖动状态
+					infoBar.setDragging(true);
 				}
 			}
 
@@ -303,6 +305,14 @@ export class ResInstance {
 	private stopDragging() {
 		if (this.isDragging) {
 			this.isDragging = false;
+
+			// 通知InfoBar结束拖动状态
+			if (this.game) {
+				const infoBar = this.game.getInfoBar();
+				if (infoBar) {
+					infoBar.setDragging(false);
+				}
+			}
 
 			// 移除全局事件监听器
 			if ((this as any).globalPointerMove) {

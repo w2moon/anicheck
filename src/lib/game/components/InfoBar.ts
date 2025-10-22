@@ -23,12 +23,14 @@ export class InfoBar {
 	private playButtonLabel?: Text;
 	private selectedResGroup: ResGroup | null = null;
 	private selectedResInstance: any = null; // 添加选中的ResInstance引用
-	private relativeXText?: Text;
-	private relativeYText?: Text;
-	private positionXText?: Text;
-	private positionYText?: Text;
+	private relativeXInput?: Input;
+	private relativeYInput?: Input;
+	private positionXInput?: Input;
+	private positionYInput?: Input;
 	private exportButton?: Button;
 	private game: Game;
+	private isDragging: boolean = false; // 添加拖动状态标志
+	private isUserInput: boolean = false; // 添加用户输入标志
 
 	constructor(game: Game) {
 		this.game = game;
@@ -603,20 +605,43 @@ export class InfoBar {
 		relativeXLabel.visible = false;
 		contentContainer.addChild(relativeXLabel);
 
-		// 相对X坐标值
-		this.relativeXText = new Text({
-			text: '0.0',
-			style: new TextStyle({
+		// 创建相对X输入框背景
+		const relativeXInputBg = new Graphics();
+		relativeXInputBg.roundRect(0, 0, 50, 20, 4);
+		relativeXInputBg.fill(0x333333);
+		relativeXInputBg.stroke({ width: 1, color: 0x666666 });
+
+		// 相对X坐标输入框
+		this.relativeXInput = new Input({
+			bg: relativeXInputBg,
+			value: '0.0',
+			textStyle: new TextStyle({
 				fontFamily: 'Arial',
-				fontSize: 14,
+				fontSize: 12,
 				fill: 0xffff00,
 				align: 'left'
-			})
+			}),
+			padding: { top: 2, right: 4, bottom: 2, left: 4 },
+			align: 'left'
 		});
-		this.relativeXText.x = 770;
-		this.relativeXText.y = 25;
-		this.relativeXText.visible = false;
-		contentContainer.addChild(this.relativeXText);
+		this.relativeXInput.x = 770;
+		this.relativeXInput.y = 25;
+		this.relativeXInput.visible = false;
+		contentContainer.addChild(this.relativeXInput);
+
+		// 添加相对X输入框值变化监听器
+		this.relativeXInput.onChange.connect((value: string) => {
+			if (this.selectedResInstance) {
+				const numValue = parseFloat(value);
+				if (!isNaN(numValue)) {
+					// 直接设置相对X坐标
+					(this.selectedResInstance as any).relativeX = numValue;
+					// 更新容器位置
+					const groupX = this.selectedResGroup?.getX() || 0;
+					this.selectedResInstance.container.x = groupX + numValue;
+				}
+			}
+		});
 
 		// 相对Y坐标标签
 		const relativeYLabel = new Text({
@@ -633,20 +658,43 @@ export class InfoBar {
 		relativeYLabel.visible = false;
 		contentContainer.addChild(relativeYLabel);
 
-		// 相对Y坐标值
-		this.relativeYText = new Text({
-			text: '0.0',
-			style: new TextStyle({
+		// 创建相对Y输入框背景
+		const relativeYInputBg = new Graphics();
+		relativeYInputBg.roundRect(0, 0, 50, 20, 4);
+		relativeYInputBg.fill(0x333333);
+		relativeYInputBg.stroke({ width: 1, color: 0x666666 });
+
+		// 相对Y坐标输入框
+		this.relativeYInput = new Input({
+			bg: relativeYInputBg,
+			value: '0.0',
+			textStyle: new TextStyle({
 				fontFamily: 'Arial',
-				fontSize: 14,
+				fontSize: 12,
 				fill: 0xffff00,
 				align: 'left'
-			})
+			}),
+			padding: { top: 2, right: 4, bottom: 2, left: 4 },
+			align: 'left'
 		});
-		this.relativeYText.x = 870;
-		this.relativeYText.y = 25;
-		this.relativeYText.visible = false;
-		contentContainer.addChild(this.relativeYText);
+		this.relativeYInput.x = 870;
+		this.relativeYInput.y = 25;
+		this.relativeYInput.visible = false;
+		contentContainer.addChild(this.relativeYInput);
+
+		// 添加相对Y输入框值变化监听器
+		this.relativeYInput.onChange.connect((value: string) => {
+			if (this.selectedResInstance) {
+				const numValue = parseFloat(value);
+				if (!isNaN(numValue)) {
+					// 直接设置相对Y坐标
+					(this.selectedResInstance as any).relativeY = numValue;
+					// 更新容器位置
+					const groupY = this.selectedResGroup?.getY() || 0;
+					this.selectedResInstance.container.y = groupY + numValue;
+				}
+			}
+		});
 	}
 
 	private createPositionTexts(contentContainer: Container) {
@@ -665,20 +713,46 @@ export class InfoBar {
 		positionXLabel.visible = false;
 		contentContainer.addChild(positionXLabel);
 
-		// 位置X坐标值
-		this.positionXText = new Text({
-			text: '0.0',
-			style: new TextStyle({
+		// 创建位置X输入框背景
+		const positionXInputBg = new Graphics();
+		positionXInputBg.roundRect(0, 0, 50, 20, 4);
+		positionXInputBg.fill(0x333333);
+		positionXInputBg.stroke({ width: 1, color: 0x666666 });
+
+		// 位置X坐标输入框
+		this.positionXInput = new Input({
+			bg: positionXInputBg,
+			value: '0.0',
+			textStyle: new TextStyle({
 				fontFamily: 'Arial',
-				fontSize: 14,
+				fontSize: 12,
 				fill: 0x00ff00,
 				align: 'left'
-			})
+			}),
+			padding: { top: 2, right: 4, bottom: 2, left: 4 },
+			align: 'left'
 		});
-		this.positionXText.x = 50;
-		this.positionXText.y = 50;
-		this.positionXText.visible = false;
-		contentContainer.addChild(this.positionXText);
+		this.positionXInput.x = 50;
+		this.positionXInput.y = 50;
+		this.positionXInput.visible = false;
+		contentContainer.addChild(this.positionXInput);
+
+		// 添加位置X输入框值变化监听器
+		this.positionXInput.onChange.connect((value: string) => {
+			if (this.selectedResGroup) {
+				const numValue = parseFloat(value);
+				if (!isNaN(numValue)) {
+					// 设置用户输入标志
+					this.isUserInput = true;
+					// 获取当前Y坐标
+					const currentY = this.selectedResGroup.getY();
+					// 使用setPosition方法更新位置
+					this.selectedResGroup.setPosition(numValue, currentY);
+					// 重置用户输入标志
+					this.isUserInput = false;
+				}
+			}
+		});
 
 		// 位置Y坐标标签
 		const positionYLabel = new Text({
@@ -695,20 +769,46 @@ export class InfoBar {
 		positionYLabel.visible = false;
 		contentContainer.addChild(positionYLabel);
 
-		// 位置Y坐标值
-		this.positionYText = new Text({
-			text: '0.0',
-			style: new TextStyle({
+		// 创建位置Y输入框背景
+		const positionYInputBg = new Graphics();
+		positionYInputBg.roundRect(0, 0, 50, 20, 4);
+		positionYInputBg.fill(0x333333);
+		positionYInputBg.stroke({ width: 1, color: 0x666666 });
+
+		// 位置Y坐标输入框
+		this.positionYInput = new Input({
+			bg: positionYInputBg,
+			value: '0.0',
+			textStyle: new TextStyle({
 				fontFamily: 'Arial',
-				fontSize: 14,
+				fontSize: 12,
 				fill: 0x00ff00,
 				align: 'left'
-			})
+			}),
+			padding: { top: 2, right: 4, bottom: 2, left: 4 },
+			align: 'left'
 		});
-		this.positionYText.x = 150;
-		this.positionYText.y = 50;
-		this.positionYText.visible = false;
-		contentContainer.addChild(this.positionYText);
+		this.positionYInput.x = 150;
+		this.positionYInput.y = 50;
+		this.positionYInput.visible = false;
+		contentContainer.addChild(this.positionYInput);
+
+		// 添加位置Y输入框值变化监听器
+		this.positionYInput.onChange.connect((value: string) => {
+			if (this.selectedResGroup) {
+				const numValue = parseFloat(value);
+				if (!isNaN(numValue)) {
+					// 设置用户输入标志
+					this.isUserInput = true;
+					// 获取当前X坐标
+					const currentX = this.selectedResGroup.getX();
+					// 使用setPosition方法更新位置
+					this.selectedResGroup.setPosition(currentX, numValue);
+					// 重置用户输入标志
+					this.isUserInput = false;
+				}
+			}
+		});
 	}
 
 	private createExportButton(contentContainer: Container) {
@@ -911,23 +1011,35 @@ export class InfoBar {
 	}
 
 	public updateResInstanceCoordinates(resInstance: any) {
-		if (this.selectedResInstance === resInstance && this.relativeXText && this.relativeYText) {
+		if (this.selectedResInstance === resInstance && this.relativeXInput && this.relativeYInput) {
 			const relativeX = resInstance.getRelativeX();
 			const relativeY = resInstance.getRelativeY();
 
-			this.relativeXText.text = relativeX.toFixed(1);
-			this.relativeYText.text = relativeY.toFixed(1);
+			this.relativeXInput.value = relativeX.toFixed(1);
+			this.relativeYInput.value = relativeY.toFixed(1);
 		}
 	}
 
 	public updateResGroupPosition(resGroup: ResGroup) {
-		if (this.selectedResGroup === resGroup && this.positionXText && this.positionYText) {
+		// 只在非拖动状态且非用户输入时更新输入框
+		if (
+			!this.isDragging &&
+			!this.isUserInput &&
+			this.selectedResGroup === resGroup &&
+			this.positionXInput &&
+			this.positionYInput
+		) {
 			const positionX = resGroup.getX();
 			const positionY = resGroup.getY();
 
-			this.positionXText.text = positionX.toFixed(1);
-			this.positionYText.text = positionY.toFixed(1);
+			this.positionXInput.value = positionX.toFixed(1);
+			this.positionYInput.value = positionY.toFixed(1);
 		}
+	}
+
+	// 设置拖动状态
+	public setDragging(isDragging: boolean) {
+		this.isDragging = isDragging;
 	}
 
 	public show(resGroup: ResGroup, resInstance?: any) {
@@ -1030,15 +1142,15 @@ export class InfoBar {
 	}
 
 	private updateRelativePositionDisplay() {
-		if (this.selectedResInstance && this.relativeXText && this.relativeYText) {
+		if (this.selectedResInstance && this.relativeXInput && this.relativeYInput) {
 			const relativeX = this.selectedResInstance.getRelativeX();
 			const relativeY = this.selectedResInstance.getRelativeY();
 
-			this.relativeXText.text = relativeX.toFixed(1);
-			this.relativeYText.text = relativeY.toFixed(1);
+			this.relativeXInput.value = relativeX.toFixed(1);
+			this.relativeYInput.value = relativeY.toFixed(1);
 
-			this.relativeXText.visible = true;
-			this.relativeYText.visible = true;
+			this.relativeXInput.visible = true;
+			this.relativeYInput.visible = true;
 
 			// 显示标签
 			const contentContainer = this.container.children[2]; // contentContainer是第3个子元素
@@ -1052,8 +1164,8 @@ export class InfoBar {
 			if (relativeXLabel) relativeXLabel.visible = true;
 			if (relativeYLabel) relativeYLabel.visible = true;
 		} else {
-			if (this.relativeXText) this.relativeXText.visible = false;
-			if (this.relativeYText) this.relativeYText.visible = false;
+			if (this.relativeXInput) this.relativeXInput.visible = false;
+			if (this.relativeYInput) this.relativeYInput.visible = false;
 
 			// 隐藏标签
 			const contentContainer = this.container.children[2];
@@ -1070,15 +1182,15 @@ export class InfoBar {
 	}
 
 	private updatePositionDisplay() {
-		if (this.selectedResGroup && this.positionXText && this.positionYText) {
+		if (this.selectedResGroup && this.positionXInput && this.positionYInput) {
 			const positionX = this.selectedResGroup.getX();
 			const positionY = this.selectedResGroup.getY();
 
-			this.positionXText.text = positionX.toFixed(1);
-			this.positionYText.text = positionY.toFixed(1);
+			this.positionXInput.value = positionX.toFixed(1);
+			this.positionYInput.value = positionY.toFixed(1);
 
-			this.positionXText.visible = true;
-			this.positionYText.visible = true;
+			this.positionXInput.visible = true;
+			this.positionYInput.visible = true;
 
 			// 显示标签
 			const contentContainer = this.container.children[2]; // contentContainer是第3个子元素
@@ -1092,8 +1204,8 @@ export class InfoBar {
 			if (positionXLabel) positionXLabel.visible = true;
 			if (positionYLabel) positionYLabel.visible = true;
 		} else {
-			if (this.positionXText) this.positionXText.visible = false;
-			if (this.positionYText) this.positionYText.visible = false;
+			if (this.positionXInput) this.positionXInput.visible = false;
+			if (this.positionYInput) this.positionYInput.visible = false;
 
 			// 隐藏标签
 			const contentContainer = this.container.children[2];
