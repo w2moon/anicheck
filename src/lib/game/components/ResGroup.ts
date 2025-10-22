@@ -187,4 +187,12 @@ export class ResGroup {
 	public getY(): number {
 		return this.y;
 	}
+
+	/**
+	 * 获取所有ResInstance实例
+	 * @returns ResInstance数组
+	 */
+	public getInstances(): ResInstance[] {
+		return this.objs;
+	}
 }

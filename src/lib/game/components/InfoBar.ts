@@ -25,6 +25,7 @@ export class InfoBar {
 	private selectedResInstance: any = null; // 添加选中的ResInstance引用
 	private relativeXText?: Text;
 	private relativeYText?: Text;
+	private exportButton?: Button;
 	private game: Game;
 
 	constructor(game: Game) {
@@ -203,6 +204,9 @@ export class InfoBar {
 
 		// 创建相对坐标显示文本
 		this.createRelativePositionTexts(contentContainer);
+
+		// 创建导出按钮
+		this.createExportButton(contentContainer);
 	}
 
 	private createAnimationSelector(contentContainer: Container) {
@@ -638,6 +642,189 @@ export class InfoBar {
 		this.relativeYText.y = 25;
 		this.relativeYText.visible = false;
 		contentContainer.addChild(this.relativeYText);
+	}
+
+	private createExportButton(contentContainer: Container) {
+		// 创建导出按钮背景
+		const exportButtonBg = new Graphics();
+		exportButtonBg.roundRect(0, 0, 80, 30, 6);
+		exportButtonBg.fill(0x4a90e2);
+		exportButtonBg.stroke({ width: 2, color: 0xffffff });
+
+		// 创建导出按钮文本
+		const exportButtonText = new Text({
+			text: '导出',
+			style: new TextStyle({
+				fontFamily: 'Arial',
+				fontSize: 14,
+				fill: 0xffffff,
+				align: 'center'
+			})
+		});
+		exportButtonText.anchor.set(0.5);
+		exportButtonText.x = 40;
+		exportButtonText.y = 15;
+
+		// 创建导出按钮容器
+		const exportButtonContainer = new Container();
+		exportButtonContainer.addChild(exportButtonBg);
+		exportButtonContainer.addChild(exportButtonText);
+		exportButtonContainer.cursor = 'pointer';
+		exportButtonContainer.x = 240;
+		exportButtonContainer.y = 25;
+
+		// 创建按钮
+		this.exportButton = new Button(exportButtonContainer);
+
+		// 导出按钮点击事件
+		this.exportButton.onPress.connect(() => {
+			if (this.selectedResGroup) {
+				this.showExportModal();
+			}
+		});
+
+		// 悬停效果
+		this.exportButton.onHover.connect(() => {
+			exportButtonBg.tint = 0x3a7bc8;
+		});
+
+		this.exportButton.onOut.connect(() => {
+			exportButtonBg.tint = 0xffffff;
+		});
+
+		this.exportButton.onDown.connect(() => {
+			exportButtonBg.tint = 0x2c5aa0;
+		});
+
+		this.exportButton.onUp.connect(() => {
+			exportButtonBg.tint = 0xffffff;
+		});
+
+		contentContainer.addChild(exportButtonContainer);
+	}
+
+	private showExportModal() {
+		if (!this.selectedResGroup) return;
+
+		// 获取所有instance的坐标数据
+		const instancesData = this.getInstancesData();
+
+		// 创建模态框HTML
+		const modalHtml = `
+			<div id="exportModal" style="
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background-color: rgba(0, 0, 0, 0.5);
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				z-index: 10000;
+			">
+				<div style="
+					background-color: white;
+					padding: 20px;
+					border-radius: 8px;
+					box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+					max-width: 500px;
+					width: 90%;
+					max-height: 80%;
+					overflow-y: auto;
+				">
+					<h3 style="margin-top: 0; color: #333;">导出坐标数据</h3>
+					<pre id="exportData" style="
+						background-color: #f5f5f5;
+						padding: 15px;
+						border-radius: 4px;
+						overflow-x: auto;
+						font-family: monospace;
+						font-size: 14px;
+						white-space: pre-wrap;
+						word-break: break-all;
+					">${JSON.stringify(instancesData, null, 2)}</pre>
+					<div style="margin-top: 20px; text-align: right;">
+						<button id="copyButton" style="
+							background-color: #4a90e2;
+							color: white;
+							border: none;
+							padding: 10px 20px;
+							border-radius: 4px;
+							cursor: pointer;
+							margin-right: 10px;
+						">拷贝</button>
+						<button id="closeButton" style="
+							background-color: #666;
+							color: white;
+							border: none;
+							padding: 10px 20px;
+							border-radius: 4px;
+							cursor: pointer;
+						">关闭</button>
+					</div>
+				</div>
+			</div>
+		`;
+
+		// 添加到页面
+		document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+		// 添加事件监听器
+		const modal = document.getElementById('exportModal');
+		const copyButton = document.getElementById('copyButton');
+		const closeButton = document.getElementById('closeButton');
+
+		if (copyButton) {
+			copyButton.addEventListener('click', () => {
+				const dataText = document.getElementById('exportData')?.textContent || '';
+				navigator.clipboard
+					.writeText(dataText)
+					.then(() => {
+						alert('已复制到剪贴板！');
+					})
+					.catch(() => {
+						// 降级方案
+						const textArea = document.createElement('textarea');
+						textArea.value = dataText;
+						document.body.appendChild(textArea);
+						textArea.select();
+						document.execCommand('copy');
+						document.body.removeChild(textArea);
+						alert('已复制到剪贴板！');
+					});
+			});
+		}
+
+		if (closeButton) {
+			closeButton.addEventListener('click', () => {
+				if (modal) {
+					modal.remove();
+				}
+			});
+		}
+
+		// 点击背景关闭模态框
+		if (modal) {
+			modal.addEventListener('click', (e) => {
+				if (e.target === modal) {
+					modal.remove();
+				}
+			});
+		}
+	}
+
+	private getInstancesData() {
+		if (!this.selectedResGroup) return [];
+
+		// 获取ResGroup中的所有instance
+		const instances = this.selectedResGroup.getInstances();
+
+		// 提取每个instance的relativeX和relativeY，保留3位小数
+		return instances.map((instance) => ({
+			x: parseFloat(instance.getRelativeX().toFixed(3)),
+			y: parseFloat(instance.getRelativeY().toFixed(3))
+		}));
 	}
 
 	public updateResInstanceCoordinates(resInstance: any) {
