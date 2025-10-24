@@ -364,15 +364,15 @@ export class InfoBar {
 				align: 'left'
 			})
 		});
-		this.relativeCheckboxLabel.x = 580;
-		this.relativeCheckboxLabel.y = 25;
+		this.relativeCheckboxLabel.x = 580 + 40 + 340;
+		this.relativeCheckboxLabel.y = 40;
 		this.relativeCheckboxLabel.visible = true;
 		contentContainer.addChild(this.relativeCheckboxLabel);
 
 		// 勾选框容器
 		this.relativeCheckboxContainer = new Container();
-		this.relativeCheckboxContainer.x = 650;
-		this.relativeCheckboxContainer.y = 25;
+		this.relativeCheckboxContainer.x = 650 + 40 + 340;
+		this.relativeCheckboxContainer.y = 40;
 		this.relativeCheckboxContainer.visible = true;
 
 		// 创建勾选框背景
@@ -708,8 +708,8 @@ export class InfoBar {
 				align: 'left'
 			})
 		});
-		positionXLabel.x = 0;
-		positionXLabel.y = 50;
+		positionXLabel.x = 720;
+		positionXLabel.y = 0;
 		positionXLabel.visible = false;
 		contentContainer.addChild(positionXLabel);
 
@@ -732,8 +732,8 @@ export class InfoBar {
 			padding: { top: 2, right: 4, bottom: 2, left: 4 },
 			align: 'left'
 		});
-		this.positionXInput.x = 50;
-		this.positionXInput.y = 50;
+		this.positionXInput.x = 720 + 50;
+		this.positionXInput.y = 0;
 		this.positionXInput.visible = false;
 		contentContainer.addChild(this.positionXInput);
 
@@ -764,8 +764,8 @@ export class InfoBar {
 				align: 'left'
 			})
 		});
-		positionYLabel.x = 100;
-		positionYLabel.y = 50;
+		positionYLabel.x = 720 + 100;
+		positionYLabel.y = 0;
 		positionYLabel.visible = false;
 		contentContainer.addChild(positionYLabel);
 
@@ -788,8 +788,8 @@ export class InfoBar {
 			padding: { top: 2, right: 4, bottom: 2, left: 4 },
 			align: 'left'
 		});
-		this.positionYInput.x = 150;
-		this.positionYInput.y = 50;
+		this.positionYInput.x = 720 + 150;
+		this.positionYInput.y = 0;
 		this.positionYInput.visible = false;
 		contentContainer.addChild(this.positionYInput);
 
@@ -837,8 +837,8 @@ export class InfoBar {
 		exportButtonContainer.addChild(exportButtonBg);
 		exportButtonContainer.addChild(exportButtonText);
 		exportButtonContainer.cursor = 'pointer';
-		exportButtonContainer.x = 240;
-		exportButtonContainer.y = 25;
+		exportButtonContainer.x = 720 + 240;
+		exportButtonContainer.y = 0;
 
 		// 创建按钮
 		this.exportButton = new Button(exportButtonContainer);
