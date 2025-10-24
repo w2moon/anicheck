@@ -196,9 +196,9 @@ export class Game {
 			// 限制滚动范围
 			newY = Math.max(-this.maxScrollY, Math.min(0, newY));
 
-			// 更新stage位置
+			// 更新unitsContainer位置而不是整个stage
 			this.stageY = newY;
-			this.app.stage.y = this.stageY;
+			this.unitsContainer.y = this.stageY;
 		});
 	}
 
@@ -216,6 +216,7 @@ export class Game {
 
 		// 创建units容器
 		this.unitsContainer = new Container();
+		this.unitsContainer.y = this.stageY; // 设置初始位置
 		this.app.stage.addChild(this.unitsContainer);
 
 		// 创建顶部按钮栏
