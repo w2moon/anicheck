@@ -1021,9 +1021,8 @@ export class InfoBar {
 	}
 
 	public updateResGroupPosition(resGroup: ResGroup) {
-		// 只在非拖动状态且非用户输入时更新输入框
+		// 只在非用户输入时更新输入框（允许拖动时更新）
 		if (
-			!this.isDragging &&
 			!this.isUserInput &&
 			this.selectedResGroup === resGroup &&
 			this.positionXInput &&

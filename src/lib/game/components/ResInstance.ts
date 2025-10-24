@@ -285,6 +285,14 @@ export class ResInstance {
 					// 非相对位置模式：直接设置组的位置
 					// 注意：这里使用newX和newY作为组的基准位置，而不是容器的实际位置
 					this.resGroup.setPosition(newX, newY);
+
+					// 实时更新InfoBar中的位置坐标显示
+					if (this.game) {
+						const infoBar = this.game.getInfoBar();
+						if (infoBar) {
+							infoBar.updateResGroupPosition(this.resGroup);
+						}
+					}
 				}
 			}
 		};
