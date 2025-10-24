@@ -34,6 +34,7 @@ export class ResGroup {
 
 	private x: number = 0;
 	private y: number = 0;
+	private zIndex: number = 0;
 	private scale: number = 1;
 	private pivotX: number = 0;
 	private pivotY: number = 0;
@@ -48,6 +49,7 @@ export class ResGroup {
 		resInstance.container.y = this.y;
 		resInstance.container.scale.set(this.scale);
 		resInstance.container.pivot.set(this.pivotX, this.pivotY);
+		resInstance.setZIndex(this.zIndex); // 设置zIndex
 		this.objs.push(resInstance);
 		return resInstance;
 	}
@@ -202,5 +204,25 @@ export class ResGroup {
 	 */
 	public getInstances(): ResInstance[] {
 		return this.objs;
+	}
+
+	/**
+	 * 获取zIndex值
+	 * @returns zIndex值
+	 */
+	public getZIndex(): number {
+		return this.zIndex;
+	}
+
+	/**
+	 * 设置zIndex值并更新所有ResInstance的zIndex
+	 * @param zIndex 新的zIndex值
+	 */
+	public setZIndex(zIndex: number): void {
+		this.zIndex = zIndex;
+		// 更新所有ResInstance的zIndex
+		this.objs.forEach((obj) => {
+			obj.setZIndex(zIndex);
+		});
 	}
 }

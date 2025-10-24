@@ -28,6 +28,9 @@ export class InfoBar {
 	private positionXInput?: Input;
 	private positionYInput?: Input;
 	private exportButton?: Button;
+	private zIndexUpButton?: Button;
+	private zIndexDownButton?: Button;
+	private zIndexLabel?: Text;
 	private game: Game;
 	private isDragging: boolean = false; // 添加拖动状态标志
 	private isUserInput: boolean = false; // 添加用户输入标志
@@ -89,6 +92,9 @@ export class InfoBar {
 		infoLabel.x = 0;
 		infoLabel.y = 0;
 		contentContainer.addChild(infoLabel);
+
+		// 创建zIndex控制按钮
+		this.createZIndexControls(contentContainer);
 
 		// 缩放标签
 		const scaleLabel = new Text({
@@ -811,6 +817,122 @@ export class InfoBar {
 		});
 	}
 
+	private createZIndexControls(contentContainer: Container) {
+		// zIndex标签
+		this.zIndexLabel = new Text({
+			text: '层级:',
+			style: new TextStyle({
+				fontFamily: 'Arial',
+				fontSize: 14,
+				fill: 0xffffff,
+				align: 'left'
+			})
+		});
+		this.zIndexLabel.x = 120;
+		this.zIndexLabel.y = 0;
+		contentContainer.addChild(this.zIndexLabel);
+
+		// 创建上移按钮
+		const upButtonBg = new Graphics();
+		upButtonBg.roundRect(0, 0, 25, 20, 3);
+		upButtonBg.fill(0x4a90e2);
+		upButtonBg.stroke({ width: 1, color: 0x2c5aa0 });
+
+		const upButtonText = new Text({
+			text: '↑',
+			style: new TextStyle({
+				fontFamily: 'Arial',
+				fontSize: 14,
+				fill: 0xffffff,
+				align: 'center'
+			})
+		});
+		upButtonText.anchor.set(0.5);
+		upButtonText.x = 12.5;
+		upButtonText.y = 10;
+
+		const upButtonContainer = new Container();
+		upButtonContainer.addChild(upButtonBg);
+		upButtonContainer.addChild(upButtonText);
+		upButtonContainer.cursor = 'pointer';
+		upButtonContainer.x = 160 + 30;
+		upButtonContainer.y = 0;
+
+		this.zIndexUpButton = new Button(upButtonContainer);
+
+		// 上移按钮事件
+		this.zIndexUpButton.onPress.connect(() => {
+			if (this.selectedResGroup) {
+				this.selectedResGroup.setZIndex(this.selectedResGroup.getZIndex() + 1);
+				this.updateZIndexDisplay();
+			}
+		});
+
+		// 上移按钮悬停效果
+		this.zIndexUpButton.onHover.connect(() => {
+			upButtonBg.tint = 0x3a7bc8;
+		});
+
+		this.zIndexUpButton.onOut.connect(() => {
+			upButtonBg.tint = 0xffffff;
+		});
+
+		contentContainer.addChild(upButtonContainer);
+
+		// 创建下移按钮
+		const downButtonBg = new Graphics();
+		downButtonBg.roundRect(0, 0, 25, 20, 3);
+		downButtonBg.fill(0x4a90e2);
+		downButtonBg.stroke({ width: 1, color: 0x2c5aa0 });
+
+		const downButtonText = new Text({
+			text: '↓',
+			style: new TextStyle({
+				fontFamily: 'Arial',
+				fontSize: 14,
+				fill: 0xffffff,
+				align: 'center'
+			})
+		});
+		downButtonText.anchor.set(0.5);
+		downButtonText.x = 12.5;
+		downButtonText.y = 10;
+
+		const downButtonContainer = new Container();
+		downButtonContainer.addChild(downButtonBg);
+		downButtonContainer.addChild(downButtonText);
+		downButtonContainer.cursor = 'pointer';
+		downButtonContainer.x = 190 + 30;
+		downButtonContainer.y = 0;
+
+		this.zIndexDownButton = new Button(downButtonContainer);
+
+		// 下移按钮事件
+		this.zIndexDownButton.onPress.connect(() => {
+			if (this.selectedResGroup) {
+				this.selectedResGroup.setZIndex(Math.max(0, this.selectedResGroup.getZIndex() - 1));
+				this.updateZIndexDisplay();
+			}
+		});
+
+		// 下移按钮悬停效果
+		this.zIndexDownButton.onHover.connect(() => {
+			downButtonBg.tint = 0x3a7bc8;
+		});
+
+		this.zIndexDownButton.onOut.connect(() => {
+			downButtonBg.tint = 0xffffff;
+		});
+
+		contentContainer.addChild(downButtonContainer);
+	}
+
+	private updateZIndexDisplay() {
+		if (this.selectedResGroup && this.zIndexLabel) {
+			this.zIndexLabel.text = `层级: ${this.selectedResGroup.getZIndex()}`;
+		}
+	}
+
 	private createExportButton(contentContainer: Container) {
 		// 创建导出按钮背景
 		const exportButtonBg = new Graphics();
@@ -1138,6 +1260,9 @@ export class InfoBar {
 
 		// 显示位置坐标信息
 		this.updatePositionDisplay();
+
+		// 更新zIndex显示
+		this.updateZIndexDisplay();
 	}
 
 	private updateRelativePositionDisplay() {

@@ -358,6 +358,14 @@ export class ResInstance {
 		return 1; // 默认缩放因子为1
 	}
 
+	/**
+	 * 设置zIndex值
+	 * @param zIndex 新的zIndex值
+	 */
+	public setZIndex(zIndex: number): void {
+		this.container.zIndex = zIndex;
+	}
+
 	public destroy() {
 		// 停止拖拽并清理全局事件监听器
 		this.stopDragging();
