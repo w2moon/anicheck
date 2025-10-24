@@ -41,7 +41,8 @@ export class SpineLoader {
 		// 按文件名分组
 		files.forEach((file) => {
 			const baseName =
-				file.webkitRelativePath.split('/')?.[1] ?? file.name.replace(/\.(skel|atlas|png)$/, '');
+				file.webkitRelativePath.split('/')?.[1]?.replace(/\.(skel|atlas|png)$/, '') ??
+				file.name.replace(/\.(skel|atlas|png)$/, '');
 
 			if (!groups[baseName]) {
 				groups[baseName] = { png: [] };
